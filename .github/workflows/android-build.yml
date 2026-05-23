@@ -78,18 +78,20 @@ jobs:
       - name: Print Xcode version
         run: xcodebuild -version
 
-      # Pin to the 10.0.2xx feature band whose MAUI iOS manifest targets
-      # iOS SDK 26.2/26.3 — compatible with the Xcode 26.3 on macos-15.
-      # (10.0.3xx bumped the workload to iOS 26.5 which requires Xcode 26.5.)
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.2xx'
+          dotnet-version: '10.0.x'
 
       - name: Print .NET SDK version
         run: dotnet --version
 
+      # Pin workload set to 10.0.202 so the iOS SDK installed is 26.2.x,
+      # which requires Xcode 26.2 — satisfied by the 26.3 on macos-15.
+      # (Without pinning, install pulls the latest 26.5.x which needs Xcode 26.5.)
       - name: Install MAUI iOS workload
-        run: dotnet workload install maui-ios
+        run: |
+          dotnet workload update --version 10.0.202
+          dotnet workload install maui-ios
 
       - name: Restore
         run: dotnet restore BreedFinder.csproj -p:TargetFramework=net10.0-ios -p:RuntimeIdentifier=ios-arm64
