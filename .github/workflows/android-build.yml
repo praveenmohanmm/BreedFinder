@@ -1,4 +1,4 @@
-name: Android APK Build
+name: Android & iOS Build
 
 on:
   push:
@@ -7,28 +7,39 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# ─────────────────────────────────────────────────────────────────────────────
+# iOS signing secrets required in repo Settings → Secrets → Actions:
+#   APPLE_CERTIFICATE_BASE64        — base64 of your .p12 distribution certificate
+#   APPLE_CERTIFICATE_PASSWORD      — password for the .p12
+#   APPLE_PROVISIONING_PROFILE      — base64 of your .mobileprovision file
+#   APPLE_PROVISIONING_PROFILE_NAME — profile name as shown in Xcode / Dev Portal
+#   APPLE_CODESIGN_KEY              — signing identity, e.g. "Apple Distribution: …"
+#
+# Without these secrets the iOS job still compiles (validates the code) but
+# skips IPA creation and the release will contain only the Android APK.
+# ─────────────────────────────────────────────────────────────────────────────
+
 jobs:
+
+  # ── Android ─────────────────────────────────────────────────────────────────
   build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
 
-      - name: Restore dependencies
+      - name: Restore
         run: dotnet restore BreedFinder.csproj
 
-      - name: Build Android APK
+      - name: Publish APK
         run: |
           dotnet publish BreedFinder.csproj \
             -f net10.0-android \
@@ -37,33 +48,162 @@ jobs:
             -p:AndroidSdkDirectory=$ANDROID_SDK_ROOT
 
       - name: Locate APK
-        id: find_apk
+        id: apk
         run: |
-          APK=$(find bin/Release/net10.0-android/publish -name "*.apk" | head -1)
-          echo "path=$APK" >> $GITHUB_OUTPUT
-          echo "Found APK: $APK"
+          path=$(find bin/Release/net10.0-android/publish -name "*.apk" | head -1)
+          echo "path=$path" >> $GITHUB_OUTPUT
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BreedFinder-Android-APK
-          path: ${{ steps.find_apk.outputs.path }}
+          name: android-apk
+          path: ${{ steps.apk.outputs.path }}
           retention-days: 30
 
-      - name: Create GitHub Release with APK
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+  # ── iOS ──────────────────────────────────────────────────────────────────────
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI iOS workload
+        run: dotnet workload install maui-ios
+
+      - name: Restore
+        run: dotnet restore BreedFinder.csproj
+
+      # Check whether signing secrets have been configured
+      - name: Check signing secrets
+        id: signing
+        run: |
+          if [ -n "$CERT" ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+
+      # Import certificate → temp keychain (only when secrets are present)
+      - name: Import signing certificate
+        if: steps.signing.outputs.available == 'true'
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+          KEYCHAIN_PWD=$(openssl rand -base64 12)
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode > $RUNNER_TEMP/cert.p12
+          security import $RUNNER_TEMP/cert.p12 \
+            -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      # Install provisioning profile (only when secrets are present)
+      - name: Install provisioning profile
+        if: steps.signing.outputs.available == 'true'
+        env:
+          PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo -n "$PROFILE_BASE64" | base64 --decode \
+            > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      # Full signed publish → produces an IPA
+      - name: Publish IPA (signed)
+        if: steps.signing.outputs.available == 'true'
+        run: |
+          dotnet publish BreedFinder.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:ArchiveOnBuild=true \
+            -p:CodesignKey="${{ secrets.APPLE_CODESIGN_KEY }}" \
+            -p:CodesignProvision="${{ secrets.APPLE_PROVISIONING_PROFILE_NAME }}"
+
+      # Unsigned build — validates code compiles, no IPA produced
+      - name: Build iOS (unsigned — no signing secrets)
+        if: steps.signing.outputs.available != 'true'
+        run: |
+          dotnet build BreedFinder.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:CodesignKey="" \
+            -p:CodesignProvision=""
+
+      - name: Locate IPA
+        id: ipa
+        if: steps.signing.outputs.available == 'true'
+        run: |
+          path=$(find bin/Release/net10.0-ios -name "*.ipa" | head -1)
+          echo "path=$path" >> $GITHUB_OUTPUT
+          echo "Found IPA: $path"
+
+      - name: Upload IPA artifact
+        if: steps.signing.outputs.available == 'true' && steps.ipa.outputs.path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: ${{ steps.ipa.outputs.path }}
+          retention-days: 30
+
+  # ── Release ───────────────────────────────────────────────────────────────────
+  create-release:
+    name: Create GitHub Release
+    # Always run after both builds, but only on main pushes and only if Android succeeded
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name != 'pull_request' &&
+      needs.build-android.result == 'success'
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: release-assets/
+
+      - name: Download iOS IPA (if available)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa
+          path: release-assets/
+
+      - name: List release assets
+        run: ls -lh release-assets/
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: "Breed Finder — Build ${{ github.run_number }}"
           body: |
-            ## Android APK — Build ${{ github.run_number }}
+            ## Breed Finder — Build ${{ github.run_number }}
 
             Built from commit [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
 
-            ### Install
-            1. Download **BreedFinder.apk** below.
-            2. On your Android device enable **Install from unknown sources**.
-            3. Open the downloaded file and tap Install.
-          files: ${{ steps.find_apk.outputs.path }}
+            ### Android
+            Download **BreedFinder.apk** and install it on your Android device.
+            > Enable *Install from unknown sources* in Settings before installing.
+
+            ### iOS
+            Download **BreedFinder.ipa** (only present when signing secrets are configured).
+            > Use **AltStore**, **Sideloadly**, or **Apple Configurator 2** to sideload.
+            > To set up iOS signing, add the 5 `APPLE_*` secrets to *Settings → Secrets → Actions* in this repo.
+          files: release-assets/*
           token: ${{ secrets.GITHUB_TOKEN }}

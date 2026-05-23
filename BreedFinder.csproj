@@ -32,6 +32,8 @@
 
 		<!-- App Identifier -->
 		<ApplicationId>com.breedfinderapp.breedfinder</ApplicationId>
+		<ApplicationId Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">com.poodlesoft.breedfinder</ApplicationId>
+		<ApplicationId Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">com.poodlesoft.breedfinder</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
