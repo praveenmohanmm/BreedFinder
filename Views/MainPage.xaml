@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BreedFinder.ViewModels"
+             xmlns:models="clr-namespace:BreedFinder.Models"
+             xmlns:conv="clr-namespace:BreedFinder.Converters"
+             x:Class="BreedFinder.Views.MainPage"
+             x:DataType="vm:MainViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
+
+    <ContentPage.Resources>
+        <conv:MatchColorConverter x:Key="MatchColor" />
+        <conv:MatchLabelConverter x:Key="MatchLabel" />
+        <conv:InvertBoolConverter x:Key="InvertBool" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ══ FIXED GRADIENT HEADER ══════════════════════════════════════════ -->
+        <Grid Grid.Row="0" HeightRequest="110">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#6366F1" Offset="0" />
+                    <GradientStop Color="#8B5CF6" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid ColumnDefinitions="*,Auto" Padding="18,48,18,12" VerticalOptions="Fill">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="End" Spacing="2">
+                    <Label Text="🐾 Breed Finder"
+                           FontSize="26" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="Find your perfect puppy"
+                           FontSize="13" TextColor="#D4D8FF" />
+                </VerticalStackLayout>
+                <Button Grid.Column="1" Text="Reset"
+                        Command="{Binding ResetFiltersCommand}"
+                        VerticalOptions="End"
+                        BackgroundColor="Transparent"
+                        BorderColor="#FFFFFF60" BorderWidth="1"
+                        TextColor="White" FontSize="12"
+                        Padding="12,6" CornerRadius="20" />
+            </Grid>
+        </Grid>
+
+        <!-- ══ SCROLLABLE BODY ════════════════════════════════════════════════ -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding MatchingBreeds}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedBreed, Mode=TwoWay}">
+
+            <CollectionView.Header>
+                <VerticalStackLayout Spacing="0" BackgroundColor="{StaticResource PageBackground}">
+
+                    <!-- ── Filter toggle bar ─────────────────────────────── -->
+                    <Grid BackgroundColor="{StaticResource Surface}"
+                          Padding="16,12" ColumnDefinitions="Auto,*,Auto">
+                        <Border Grid.Column="0"
+                                BackgroundColor="{StaticResource TagBackground}"
+                                StrokeShape="RoundRectangle 8" Stroke="Transparent"
+                                Padding="8,4">
+                            <Label Text="🎚 Filters" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}" />
+                        </Border>
+                        <Label Grid.Column="1"
+                               Text="Adjust sliders to match your ideal breed"
+                               FontSize="12" TextColor="{StaticResource TextSecondary}"
+                               VerticalOptions="Center" Margin="8,0,0,0" />
+                        <Button Grid.Column="2"
+                                Text="{Binding FiltersExpanded, Converter={StaticResource InvertBool}, ConverterParameter='▲|▼'}"
+                                Command="{Binding ToggleFiltersCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource TextSecondary}"
+                                FontSize="18" Padding="4,0" />
+                    </Grid>
+
+                    <!-- ── Collapsible filter panel ──────────────────────── -->
+                    <VerticalStackLayout IsVisible="{Binding FiltersExpanded}"
+                                         Spacing="10" Padding="12,10,12,0"
+                                         BackgroundColor="{StaticResource PageBackground}">
+
+                        <!-- PHYSICAL -->
+                        <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                                StrokeShape="RoundRectangle 14" BackgroundColor="{StaticResource Surface}"
+                                Padding="16,14">
+                            <VerticalStackLayout Spacing="16">
+                                <Label Text="📏  Physical" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}" />
+                                <!-- Size -->
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Size" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding SizeLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding SizeValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Tiny" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Giant" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- BEHAVIOUR -->
+                        <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                                StrokeShape="RoundRectangle 14" BackgroundColor="{StaticResource Surface}"
+                                Padding="16,14">
+                            <VerticalStackLayout Spacing="16">
+                                <Label Text="🧠  Behaviour" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}" />
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Energy Level" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding EnergyLevelLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding EnergyLevelValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Lazy" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Hyperactive" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Aggressiveness" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding AggressivenessLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding AggressivenessValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Very Gentle" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Very Dominant" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Guardedness" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding GuardednessLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding GuardednessValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Welcoming" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Very Guarded" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Loyalty" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding LoyaltyLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding LoyaltyValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Independent" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Devoted" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Single Owner" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding SingleOwnerLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding SingleOwnerValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Family Dog" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="One-Person Dog" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- CARE -->
+                        <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                                StrokeShape="RoundRectangle 14" BackgroundColor="{StaticResource Surface}"
+                                Padding="16,14">
+                            <VerticalStackLayout Spacing="16">
+                                <Label Text="✂️  Care &amp; Maintenance" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}" />
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Shedding" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding SheddingLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding SheddingValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="None" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Heavy" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Grooming Needs" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding GroomingNeedsLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding GroomingNeedsValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Minimal" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Salon-Level" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Vet Visits Required" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding VetVisitsLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding VetVisitsValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Rarely" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Very Frequent" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- HEALTH -->
+                        <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                                StrokeShape="RoundRectangle 14" BackgroundColor="{StaticResource Surface}"
+                                Padding="16,14">
+                            <VerticalStackLayout Spacing="16">
+                                <Label Text="❤️  Health" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}" />
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Immunity" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding ImmunityLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding ImmunityValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Fragile" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Exceptional" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="Lifespan" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource TagBackground}"
+                                                StrokeShape="RoundRectangle 6" Stroke="Transparent" Padding="8,3">
+                                            <Label Text="{Binding LifespanLabel}" FontSize="12"
+                                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                    <Slider Minimum="0" Maximum="10" Value="{Binding LifespanValue}"
+                                            MinimumTrackColor="{StaticResource Primary}"
+                                            MaximumTrackColor="{StaticResource SliderTrack}"
+                                            ThumbColor="{StaticResource Primary}" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <Label Text="Short" FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="Very Long" FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                    </VerticalStackLayout>
+
+                    <!-- ── FIND MY BREED BUTTON ──────────────────────────── -->
+                    <Grid Margin="12,14,12,4">
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#6366F1" Offset="0" />
+                                <GradientStop Color="#8B5CF6" Offset="1" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                                BackgroundColor="Transparent">
+                            <Grid HeightRequest="58">
+                                <!-- Loading state -->
+                                <HorizontalStackLayout IsVisible="{Binding IsLoading}"
+                                                        HorizontalOptions="Center" VerticalOptions="Center" Spacing="12">
+                                    <ActivityIndicator IsRunning="True" Color="White"
+                                                       WidthRequest="22" HeightRequest="22" />
+                                    <Label Text="Finding your perfect breed…"
+                                           TextColor="White" FontSize="16" FontAttributes="Bold"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <!-- Normal state -->
+                                <Label IsVisible="{Binding IsLoading, Converter={StaticResource InvertBool}}"
+                                       Text="🔍   Find My Breed"
+                                       TextColor="White" FontSize="17" FontAttributes="Bold"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Grid>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding FindBreedsAsyncCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </Grid>
+
+                    <!-- ── Results count header ──────────────────────────── -->
+                    <Grid IsVisible="{Binding IsResultsVisible}"
+                          Padding="16,12,16,8" ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding ResultsHeader}"
+                               FontSize="14" FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               VerticalOptions="Center" />
+                        <Border Grid.Column="1"
+                                BackgroundColor="{StaticResource TagBackground}"
+                                StrokeShape="RoundRectangle 8" Stroke="Transparent"
+                                Padding="10,4">
+                            <Label Text="Tap a card for details"
+                                   FontSize="11" TextColor="{StaticResource Primary}" />
+                        </Border>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </CollectionView.Header>
+
+            <!-- ══ 2-COLUMN BREED GRID ════════════════════════════════════════ -->
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2"
+                                 HorizontalItemSpacing="8" VerticalItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:DogBreed">
+                    <!-- Outer padding creates the grid gutter -->
+                    <Grid Padding="6,0">
+                        <Border StrokeShape="RoundRectangle 16"
+                                Stroke="{StaticResource BorderColor}" StrokeThickness="0.5"
+                                BackgroundColor="{StaticResource Surface}">
+                            <Border.Shadow>
+                                <Shadow Brush="Black" Offset="0,3" Radius="10" Opacity="0.08" />
+                            </Border.Shadow>
+
+                            <Grid RowDefinitions="155,Auto" RowSpacing="0">
+
+                                <!-- ── Image / Placeholder area ───────────── -->
+                                <Grid Grid.Row="0">
+                                    <!-- Coloured placeholder with emoji -->
+                                    <Grid BackgroundColor="{Binding AccentColor}">
+                                        <Label Text="{Binding Emoji}" FontSize="52"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Grid>
+                                    <!-- Real dog photo (fades in when URL arrives) -->
+                                    <Image Source="{Binding ImageUrl}"
+                                           Aspect="AspectFill"
+                                           IsVisible="{Binding HasImage}" />
+                                    <!-- Bottom gradient scrim -->
+                                    <Grid VerticalOptions="End" HeightRequest="50">
+                                        <Grid.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="Transparent" Offset="0" />
+                                                <GradientStop Color="#80000000" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Grid.Background>
+                                    </Grid>
+                                    <!-- Match % badge — bottom left -->
+                                    <Border HorizontalOptions="Start" VerticalOptions="End"
+                                            Margin="8" Padding="7,3"
+                                            BackgroundColor="{Binding MatchScore, Converter={StaticResource MatchColor}}"
+                                            StrokeShape="RoundRectangle 6" Stroke="Transparent">
+                                        <Label Text="{Binding MatchPercentText}"
+                                               TextColor="White" FontSize="12" FontAttributes="Bold" />
+                                    </Border>
+                                    <!-- Match label badge — bottom right -->
+                                    <Border HorizontalOptions="End" VerticalOptions="End"
+                                            Margin="8" Padding="7,3"
+                                            BackgroundColor="#CC000000"
+                                            StrokeShape="RoundRectangle 6" Stroke="Transparent">
+                                        <Label Text="{Binding MatchScore, Converter={StaticResource MatchLabel}}"
+                                               TextColor="White" FontSize="10" />
+                                    </Border>
+                                </Grid>
+
+                                <!-- ── Details area ───────────────────────── -->
+                                <VerticalStackLayout Grid.Row="1" Padding="10,10,10,12" Spacing="5">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="13" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           MaxLines="1" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding Group}"
+                                           FontSize="11" TextColor="{StaticResource TextSecondary}" />
+                                    <ProgressBar Progress="{Binding MatchScore}"
+                                                 ProgressColor="{Binding MatchScore, Converter={StaticResource MatchColor}}"
+                                                 BackgroundColor="{StaticResource SliderTrack}"
+                                                 HeightRequest="4" />
+                                    <Label Text="{Binding TagsDisplay}"
+                                           FontSize="10" TextColor="{StaticResource Primary}"
+                                           MaxLines="1" LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <!-- Empty / pre-search state -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center"
+                                     Spacing="14" Padding="40,32">
+                    <Label Text="🐾" FontSize="64" HorizontalOptions="Center" />
+                    <Label Text="Set your preferences above"
+                           FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}" HorizontalOptions="Center" />
+                    <Label Text="Then tap  🔍 Find My Breed  to discover dogs that match you."
+                           FontSize="14" TextColor="{StaticResource TextSecondary}"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.Footer>
+                <BoxView HeightRequest="32" Color="Transparent" />
+            </CollectionView.Footer>
+
+        </CollectionView>
+    </Grid>
+
+</ContentPage>

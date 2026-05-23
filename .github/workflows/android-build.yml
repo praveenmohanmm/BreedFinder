@@ -1,0 +1,42 @@
+name: Android APK Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Restore dependencies
+        run: dotnet restore BreedFinder.csproj
+
+      - name: Build Android APK
+        run: |
+          dotnet publish BreedFinder.csproj \
+            -f net10.0-android \
+            -c Release \
+            -p:AndroidKeyStore=false \
+            -p:AndroidSdkDirectory=$ANDROID_SDK_ROOT
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BreedFinder-Android-APK
+          path: bin/Release/net10.0-android/publish/*.apk
+          retention-days: 30
