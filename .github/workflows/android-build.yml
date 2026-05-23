@@ -108,8 +108,10 @@ jobs:
         env:
           CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
 
-      # Import certificate → temp keychain (only when secrets are present)
+      # Import certificate → temp keychain, then extract the exact identity
+      # string so we never rely on a manually typed APPLE_CODESIGN_KEY secret.
       - name: Import signing certificate
+        id: cert
         if: steps.signing.outputs.available == 'true'
         env:
           CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -123,7 +125,15 @@ jobs:
           echo -n "$CERTIFICATE_BASE64" | base64 --decode > $RUNNER_TEMP/cert.p12
           security import $RUNNER_TEMP/cert.p12 \
             -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          # Add keychain to search list (include login.keychain so host tools find it)
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain
+          # Extract the exact signing identity from the newly imported cert
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
+            | grep -E '"(Apple Distribution|iPhone Distribution|Apple Development)' \
+            | head -1 \
+            | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "Signing identity: $IDENTITY"
+          echo "codesign_key=$IDENTITY" >> $GITHUB_OUTPUT
 
       # Install provisioning profile (only when secrets are present)
       - name: Install provisioning profile
@@ -145,7 +155,7 @@ jobs:
             -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:ArchiveOnBuild=true \
-            -p:CodesignKey="${{ secrets.APPLE_CODESIGN_KEY }}" \
+            -p:CodesignKey="${{ steps.cert.outputs.codesign_key }}" \
             -p:CodesignProvision="${{ secrets.APPLE_PROVISIONING_PROFILE_NAME }}"
 
       # Unsigned build — validates code compiles, no IPA produced
