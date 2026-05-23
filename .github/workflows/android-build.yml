@@ -217,6 +217,155 @@ jobs:
       - name: List release assets
         run: ls -lh release-assets/
 
+      # Generate manifest.plist + install.html only when an IPA was produced
+      - name: Generate iOS OTA files
+        run: |
+          TAG="build-${{ github.run_number }}"
+          REPO="${{ github.repository }}"
+          IPA_FILE=$(ls release-assets/*.ipa 2>/dev/null | head -1)
+
+          if [ -z "$IPA_FILE" ]; then
+            echo "No IPA found — skipping OTA file generation"
+            exit 0
+          fi
+
+          IPA_NAME=$(basename "$IPA_FILE")
+          IPA_URL="https://github.com/$REPO/releases/download/$TAG/$IPA_NAME"
+          MANIFEST_URL="https://github.com/$REPO/releases/download/$TAG/manifest.plist"
+          INSTALL_URL="https://github.com/$REPO/releases/download/$TAG/install.html"
+
+          echo "IPA URL  : $IPA_URL"
+          echo "Manifest : $MANIFEST_URL"
+
+          # ── manifest.plist ────────────────────────────────────────────────
+          cat > release-assets/manifest.plist << PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>items</key>
+            <array>
+              <dict>
+                <key>assets</key>
+                <array>
+                  <dict>
+                    <key>kind</key>
+                    <string>software-package</string>
+                    <key>url</key>
+                    <string>$IPA_URL</string>
+                  </dict>
+                </array>
+                <key>metadata</key>
+                <dict>
+                  <key>bundle-identifier</key>
+                  <string>com.poodlesoft.breedfinder</string>
+                  <key>bundle-version</key>
+                  <string>1.0.${{ github.run_number }}</string>
+                  <key>kind</key>
+                  <string>software</string>
+                  <key>title</key>
+                  <string>Breed Finder</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          PLIST
+
+          # ── install.html ──────────────────────────────────────────────────
+          cat > release-assets/install.html << HTML
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+            <title>Install Breed Finder</title>
+            <style>
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+              }
+              .card {
+                background: #fff;
+                border-radius: 24px;
+                padding: 40px 32px;
+                max-width: 380px;
+                width: 100%;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+              }
+              .icon { font-size: 72px; margin-bottom: 16px; }
+              h1 { font-size: 26px; font-weight: 700; color: #1E1B4B; margin-bottom: 6px; }
+              .subtitle { font-size: 14px; color: #6B7280; margin-bottom: 8px; }
+              .build { font-size: 12px; color: #9CA3AF; margin-bottom: 32px; }
+              .btn {
+                display: block;
+                background: linear-gradient(135deg, #6366F1, #8B5CF6);
+                color: #fff;
+                font-size: 18px;
+                font-weight: 700;
+                text-decoration: none;
+                padding: 18px 24px;
+                border-radius: 16px;
+                margin-bottom: 20px;
+                transition: opacity .2s;
+              }
+              .btn:active { opacity: .85; }
+              .steps {
+                text-align: left;
+                background: #F5F3FF;
+                border-radius: 12px;
+                padding: 16px;
+                margin-top: 8px;
+              }
+              .steps p { font-size: 13px; color: #4B5563; font-weight: 600; margin-bottom: 8px; }
+              .steps ol { padding-left: 18px; }
+              .steps li { font-size: 13px; color: #6B7280; margin-bottom: 6px; line-height: 1.5; }
+              .warning {
+                font-size: 12px;
+                color: #9CA3AF;
+                margin-top: 20px;
+                line-height: 1.6;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div class="icon">🐾</div>
+              <h1>Breed Finder</h1>
+              <p class="subtitle">Find your perfect dog breed</p>
+              <p class="build">Build ${{ github.run_number }} &nbsp;·&nbsp; com.poodlesoft.breedfinder</p>
+
+              <a class="btn" href="itms-services://?action=download-manifest&amp;url=$MANIFEST_URL">
+                ⬇&nbsp; Install on iPhone / iPad
+              </a>
+
+              <div class="steps">
+                <p>Before installing:</p>
+                <ol>
+                  <li>This app was signed with an <strong>Ad Hoc</strong> or <strong>Enterprise</strong> certificate — your UDID must be registered.</li>
+                  <li>After install, go to <strong>Settings → General → VPN &amp; Device Management</strong> and trust the developer certificate.</li>
+                  <li>Tap the button above on your iPhone or iPad (not on a Mac).</li>
+                </ol>
+              </div>
+
+              <p class="warning">
+                iOS OTA install requires a trusted HTTPS connection.<br>
+                If the button does nothing, open this page in <strong>Safari</strong>.
+              </p>
+            </div>
+          </body>
+          </html>
+          HTML
+
+          echo "OTA files generated successfully"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -227,13 +376,13 @@ jobs:
 
             Built from commit [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
 
-            ### Android
-            Download **BreedFinder.apk** and install it on your Android device.
-            > Enable *Install from unknown sources* in Settings before installing.
+            ### 🤖 Android
+            Download **BreedFinder.apk** and install on your Android device.
+            > Enable *Install from unknown sources* in Settings first.
 
-            ### iOS
-            Download **BreedFinder.ipa** (only present when signing secrets are configured).
-            > Use **AltStore**, **Sideloadly**, or **Apple Configurator 2** to sideload.
-            > To set up iOS signing, add the 5 `APPLE_*` secrets to *Settings → Secrets → Actions* in this repo.
+            ### 🍎 iOS — Over The Air Install
+            Open **[install.html](https://github.com/${{ github.repository }}/releases/download/build-${{ github.run_number }}/install.html)** on your iPhone or iPad in **Safari** and tap the install button.
+            > Your device UDID must be registered in the provisioning profile.
+            > After install: Settings → General → VPN & Device Management → trust the certificate.
           files: release-assets/*
           token: ${{ secrets.GITHUB_TOKEN }}
