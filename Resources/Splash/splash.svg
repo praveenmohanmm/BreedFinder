@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Splash screen — rendered centred on Color="#6366F1" background.
+<!-- Splash screen — rendered centred on Color="#E8892B" warm amber background.
      All elements are white/semi-white on transparent. BaseSize 128x128. -->
 <svg width="456" height="456" viewBox="0 0 456 456" xmlns="http://www.w3.org/2000/svg">
 
-  <!-- Soft halo behind paw -->
-  <ellipse cx="228" cy="220" rx="140" ry="140" fill="white" fill-opacity="0.08"/>
+  <!-- Soft warm halo behind paw -->
+  <ellipse cx="228" cy="210" rx="152" ry="152" fill="white" fill-opacity="0.10"/>
 
   <!-- ── Paw print (white) ──────────────────────────── -->
 
   <!-- Main central pad -->
-  <ellipse cx="228" cy="265" rx="88" ry="74" fill="white"/>
+  <ellipse cx="228" cy="258" rx="88" ry="74" fill="white"/>
 
   <!-- Left outer toe -->
-  <ellipse cx="130" cy="172" rx="38" ry="49" fill="white" transform="rotate(-22 130 172)"/>
+  <ellipse cx="130" cy="165" rx="38" ry="49" fill="white" transform="rotate(-22 130 165)"/>
 
   <!-- Left inner toe -->
-  <ellipse cx="196" cy="133" rx="38" ry="49" fill="white" transform="rotate(-7 196 133)"/>
+  <ellipse cx="196" cy="126" rx="38" ry="49" fill="white" transform="rotate(-7 196 126)"/>
 
   <!-- Right inner toe -->
-  <ellipse cx="264" cy="133" rx="38" ry="49" fill="white" transform="rotate(7 264 133)"/>
+  <ellipse cx="264" cy="126" rx="38" ry="49" fill="white" transform="rotate(7 264 126)"/>
 
   <!-- Right outer toe -->
-  <ellipse cx="330" cy="172" rx="38" ry="49" fill="white" transform="rotate(22 330 172)"/>
+  <ellipse cx="330" cy="165" rx="38" ry="49" fill="white" transform="rotate(22 330 165)"/>
 
   <!-- ── App name ─────────────────────────────────────── -->
-  <text x="228" y="376"
+  <text x="228" y="372"
         text-anchor="middle"
         font-family="sans-serif"
         font-size="46"
@@ -33,10 +33,10 @@
         fill="white">Breed Finder</text>
 
   <!-- Tagline -->
-  <text x="228" y="416"
+  <text x="228" y="414"
         text-anchor="middle"
         font-family="sans-serif"
         font-size="22"
         fill="white"
-        fill-opacity="0.72">Find your perfect match</text>
+        fill-opacity="0.82">Find your perfect match 🐾</text>
 </svg>

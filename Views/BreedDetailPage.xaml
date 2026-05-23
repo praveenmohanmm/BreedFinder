@@ -41,12 +41,12 @@
                     </Grid.Background>
                 </Grid>
 
-                <!-- Gradient scrim — bottom (for name text legibility) -->
+                <!-- Gradient scrim — bottom (warm amber tint for name text legibility) -->
                 <Grid VerticalOptions="End" HeightRequest="130">
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="Transparent" Offset="0" />
-                            <GradientStop Color="#E6000000" Offset="1" />
+                            <GradientStop Color="#CC3D1F08" Offset="1" />
                         </LinearGradientBrush>
                     </Grid.Background>
                 </Grid>
@@ -80,9 +80,9 @@
             <Border Margin="16,-28,16,0"
                     BackgroundColor="{StaticResource Surface}"
                     Stroke="{StaticResource BorderColor}" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16" Padding="0,14">
+                    StrokeShape="RoundRectangle 18" Padding="0,14">
                 <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,4" Radius="12" Opacity="0.1" />
+                    <Shadow Brush="#E8892B" Offset="0,4" Radius="14" Opacity="0.14" />
                 </Border.Shadow>
                 <Grid ColumnDefinitions="*,1,*,1,*">
                     <!-- Match % -->
@@ -126,12 +126,18 @@
             <Border Margin="16,12,16,0"
                     BackgroundColor="{StaticResource Surface}"
                     Stroke="{StaticResource BorderColor}" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16" Padding="16,14">
+                    StrokeShape="RoundRectangle 18" Padding="16,14">
+                <Border.Shadow>
+                    <Shadow Brush="#E8892B" Offset="0,2" Radius="8" Opacity="0.06" />
+                </Border.Shadow>
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="About" FontSize="14" FontAttributes="Bold"
-                           TextColor="{StaticResource Primary}" />
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="🐾" FontSize="15" VerticalOptions="Center" />
+                        <Label Text="About" FontSize="14" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
                     <Label Text="{Binding Breed.Description}"
-                           FontSize="14" LineHeight="1.55"
+                           FontSize="14" LineHeight="1.6"
                            TextColor="{StaticResource TextPrimary}" />
                 </VerticalStackLayout>
             </Border>
@@ -140,13 +146,18 @@
             <Border Margin="16,12,16,0"
                     BackgroundColor="{StaticResource Surface}"
                     Stroke="{StaticResource BorderColor}" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16" Padding="16,14">
+                    StrokeShape="RoundRectangle 18" Padding="16,14">
+                <Border.Shadow>
+                    <Shadow Brush="#E8892B" Offset="0,2" Radius="8" Opacity="0.06" />
+                </Border.Shadow>
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="Trait Profile" FontSize="14" FontAttributes="Bold"
-                           TextColor="{StaticResource Primary}" />
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="🏅" FontSize="15" VerticalOptions="Center" />
+                        <Label Text="Trait Profile" FontSize="14" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
                     <VerticalStackLayout Spacing="11">
 
-                        <!-- helper template for each row -->
                         <Grid ColumnDefinitions="130,*,30">
                             <Label Text="Size" FontSize="13" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                             <ProgressBar Grid.Column="1" Progress="{Binding Breed.Size, Converter={StaticResource TraitProgress}}"
@@ -190,18 +201,18 @@
                         <Grid ColumnDefinitions="130,*,30">
                             <Label Text="Immunity" FontSize="13" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                             <ProgressBar Grid.Column="1" Progress="{Binding Breed.Immunity, Converter={StaticResource TraitProgress}}"
-                                         ProgressColor="#10B981" BackgroundColor="{StaticResource SliderTrack}"
+                                         ProgressColor="#22C55E" BackgroundColor="{StaticResource SliderTrack}"
                                          HeightRequest="8" VerticalOptions="Center" Margin="0,0,8,0" />
                             <Label Grid.Column="2" Text="{Binding Breed.Immunity, StringFormat='{0:0}'}"
-                                   FontSize="12" FontAttributes="Bold" TextColor="#10B981" VerticalOptions="Center" />
+                                   FontSize="12" FontAttributes="Bold" TextColor="#22C55E" VerticalOptions="Center" />
                         </Grid>
                         <Grid ColumnDefinitions="130,*,30">
                             <Label Text="Lifespan" FontSize="13" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                             <ProgressBar Grid.Column="1" Progress="{Binding Breed.Lifespan, Converter={StaticResource TraitProgress}}"
-                                         ProgressColor="#10B981" BackgroundColor="{StaticResource SliderTrack}"
+                                         ProgressColor="#22C55E" BackgroundColor="{StaticResource SliderTrack}"
                                          HeightRequest="8" VerticalOptions="Center" Margin="0,0,8,0" />
                             <Label Grid.Column="2" Text="{Binding Breed.Lifespan, StringFormat='{0:0}'}"
-                                   FontSize="12" FontAttributes="Bold" TextColor="#10B981" VerticalOptions="Center" />
+                                   FontSize="12" FontAttributes="Bold" TextColor="#22C55E" VerticalOptions="Center" />
                         </Grid>
                         <Grid ColumnDefinitions="130,*,30">
                             <Label Text="Grooming Needs" FontSize="13" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
@@ -244,10 +255,16 @@
             <Border Margin="16,12,16,36"
                     BackgroundColor="{StaticResource Surface}"
                     Stroke="{StaticResource BorderColor}" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16" Padding="16,14">
+                    StrokeShape="RoundRectangle 18" Padding="16,14">
+                <Border.Shadow>
+                    <Shadow Brush="#E8892B" Offset="0,2" Radius="8" Opacity="0.06" />
+                </Border.Shadow>
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="Highlights" FontSize="14" FontAttributes="Bold"
-                           TextColor="{StaticResource Primary}" />
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="⭐" FontSize="15" VerticalOptions="Center" />
+                        <Label Text="Highlights" FontSize="14" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
                     <FlexLayout Wrap="Wrap" Direction="Row">
                         <BindableLayout.ItemsSource>
                             <Binding Path="Breed.Tags" />
@@ -255,7 +272,7 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
                                 <Border BackgroundColor="{StaticResource TagBackground}"
-                                        StrokeShape="RoundRectangle 10"
+                                        StrokeShape="RoundRectangle 12"
                                         Stroke="{StaticResource Primary}" StrokeThickness="0.5"
                                         Padding="12,7" Margin="0,0,6,6">
                                     <Label Text="{Binding .}" FontSize="13"
