@@ -77,7 +77,7 @@ jobs:
         run: dotnet workload install maui-ios
 
       - name: Restore
-        run: dotnet restore BreedFinder.csproj -p:TargetFramework=net10.0-ios
+        run: dotnet restore BreedFinder.csproj -p:TargetFramework=net10.0-ios -p:RuntimeIdentifier=ios-arm64
 
       # Check whether signing secrets have been configured
       - name: Check signing secrets
