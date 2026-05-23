@@ -1,4 +1,37 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="456" height="456" fill="#512BD4" />
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="456" height="456" viewBox="0 0 456 456" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="456" y2="456" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <!-- Soft glow behind paw -->
+    <radialGradient id="glow" cx="50%" cy="55%" r="38%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="456" height="456" rx="96" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow -->
+  <rect width="456" height="456" rx="96" fill="url(#glow)"/>
+
+  <!-- ── Paw print (white) ──────────────────────────── -->
+
+  <!-- Main central pad -->
+  <ellipse cx="228" cy="300" rx="100" ry="84" fill="white"/>
+
+  <!-- Left outer toe -->
+  <ellipse cx="122" cy="196" rx="44" ry="56" fill="white" transform="rotate(-22 122 196)"/>
+
+  <!-- Left inner toe -->
+  <ellipse cx="196" cy="155" rx="44" ry="56" fill="white" transform="rotate(-7 196 155)"/>
+
+  <!-- Right inner toe -->
+  <ellipse cx="272" cy="155" rx="44" ry="56" fill="white" transform="rotate(7 272 155)"/>
+
+  <!-- Right outer toe -->
+  <ellipse cx="346" cy="196" rx="44" ry="56" fill="white" transform="rotate(22 346 196)"/>
 </svg>
