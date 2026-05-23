@@ -10,6 +10,8 @@ on:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -34,9 +36,34 @@ jobs:
             -p:AndroidKeyStore=false \
             -p:AndroidSdkDirectory=$ANDROID_SDK_ROOT
 
+      - name: Locate APK
+        id: find_apk
+        run: |
+          APK=$(find bin/Release/net10.0-android/publish -name "*.apk" | head -1)
+          echo "path=$APK" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: BreedFinder-Android-APK
-          path: bin/Release/net10.0-android/publish/*.apk
+          path: ${{ steps.find_apk.outputs.path }}
           retention-days: 30
+
+      - name: Create GitHub Release with APK
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "Breed Finder — Build ${{ github.run_number }}"
+          body: |
+            ## Android APK — Build ${{ github.run_number }}
+
+            Built from commit [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+
+            ### Install
+            1. Download **BreedFinder.apk** below.
+            2. On your Android device enable **Install from unknown sources**.
+            3. Open the downloaded file and tap Install.
+          files: ${{ steps.find_apk.outputs.path }}
+          token: ${{ secrets.GITHUB_TOKEN }}
