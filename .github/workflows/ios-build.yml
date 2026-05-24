@@ -1,0 +1,45 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Resolve Swift packages (if any)
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project BreedFinder.xcodeproj \
+            -scheme BreedFinder
+
+      - name: Build (iPhone simulator)
+        run: |
+          xcodebuild build \
+            -project BreedFinder.xcodeproj \
+            -scheme BreedFinder \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || xcodebuild build \
+              -project BreedFinder.xcodeproj \
+              -scheme BreedFinder \
+              -sdk iphonesimulator \
+              -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
+              -configuration Debug \
+              CODE_SIGNING_ALLOWED=NO
