@@ -17,12 +17,15 @@ on:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Required GitHub Secrets  (Settings → Secrets and variables → Actions)
+#   These already exist from the previous MAUI setup:
 #
-#   APPLE_CERTIFICATE_BASE64          Distribution .p12 as base64
-#   APPLE_CERTIFICATE_PASSWORD        Password used when exporting the .p12
-#   APPLE_PROVISIONING_PROFILE_BASE64 Ad-Hoc .mobileprovision as base64
-#   APPLE_TEAM_ID                     10-char Apple Developer Team ID
-#   KEYCHAIN_PASSWORD                 Any strong random string (temp keychain)
+#   APPLE_CERTIFICATE_BASE64    Distribution .p12 as base64
+#   APPLE_CERTIFICATE_PASSWORD  Password used when exporting the .p12
+#   APPLE_PROVISIONING_PROFILE  Ad-Hoc .mobileprovision as base64
+#
+#   APPLE_TEAM_ID and KEYCHAIN_PASSWORD are NOT needed —
+#   Team ID is extracted from the provisioning profile at runtime,
+#   and the keychain password is generated fresh each run.
 # ─────────────────────────────────────────────────────────────────────────────
 
 env:
@@ -56,22 +59,23 @@ jobs:
         env:
           P12_BASE64:   ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KC_PASSWORD:  ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           P12=$RUNNER_TEMP/cert.p12
           KC=$RUNNER_TEMP/build.keychain-db
+          KC_PASS=$(openssl rand -base64 32)   # generate fresh each run
+          echo "KC_PASS=$KC_PASS" >> "$GITHUB_ENV"
 
           echo "$P12_BASE64" | base64 --decode -o "$P12"
 
-          security create-keychain -p "$KC_PASSWORD" "$KC"
+          security create-keychain -p "$KC_PASS" "$KC"
           security default-keychain -s "$KC"
-          security unlock-keychain -p "$KC_PASSWORD" "$KC"
+          security unlock-keychain -p "$KC_PASS" "$KC"
           security set-keychain-settings -lut 21600 "$KC"
 
           security import "$P12" -P "$P12_PASSWORD" \
             -A -t cert -f pkcs12 -k "$KC"
           security set-key-partition-list \
-            -S apple-tool:,apple:,codesign: -s -k "$KC_PASSWORD" "$KC"
+            -S apple-tool:,apple:,codesign: -s -k "$KC_PASS" "$KC"
 
           echo "Installed identities:"
           security find-identity -v -p codesigning "$KC"
@@ -79,27 +83,32 @@ jobs:
       # ── 4. Provisioning profile ───────────────────────────────────────────────
       - name: Install provisioning profile
         env:
-          PP_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          PP_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
         run: |
           PP=$RUNNER_TEMP/profile.mobileprovision
           echo "$PP_BASE64" | base64 --decode -o "$PP"
 
+          # Decode the CMS envelope to get a plain plist we can query
           security cms -D -i "$PP" > "$RUNNER_TEMP/profile.plist"
-          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$RUNNER_TEMP/profile.plist")
-          PP_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$RUNNER_TEMP/profile.plist")
-          echo "Profile: $PP_NAME  ($PP_UUID)"
+
+          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID"             "$RUNNER_TEMP/profile.plist")
+          PP_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name"             "$RUNNER_TEMP/profile.plist")
+          TEAM_ID=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$RUNNER_TEMP/profile.plist")
+
+          echo "Profile : $PP_NAME"
+          echo "UUID    : $PP_UUID"
+          echo "Team ID : $TEAM_ID"
 
           PROFILES=~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p "$PROFILES"
           cp "$PP" "$PROFILES/$PP_UUID.mobileprovision"
 
-          echo "PP_UUID=$PP_UUID" >> "$GITHUB_ENV"
-          echo "PP_NAME=$PP_NAME" >> "$GITHUB_ENV"
+          echo "PP_UUID=$PP_UUID"   >> "$GITHUB_ENV"
+          echo "PP_NAME=$PP_NAME"   >> "$GITHUB_ENV"
+          echo "TEAM_ID=$TEAM_ID"   >> "$GITHUB_ENV"
 
       # ── 5. Archive ────────────────────────────────────────────────────────────
       - name: xcodebuild archive
-        env:
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -o pipefail
           xcodebuild archive \
@@ -114,33 +123,31 @@ jobs:
             PROVISIONING_PROFILE="$PP_UUID" \
             | xcpretty --color || true
 
-          test -d "$ARCHIVE_PATH" || { echo "Archive not found!"; exit 1; }
+          test -d "$ARCHIVE_PATH" || { echo "::error::Archive not created"; exit 1; }
+          echo "Archive size: $(du -sh "$ARCHIVE_PATH" | cut -f1)"
 
-      # ── 6. ExportOptions.plist (generated with live env values) ──────────────
+      # ── 6. ExportOptions.plist ────────────────────────────────────────────────
       - name: Generate ExportOptions.plist
-        env:
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>              <string>ad-hoc</string>
-              <key>teamID</key>              <string>${TEAM_ID}</string>
-              <key>signingStyle</key>        <string>manual</string>
-              <key>stripSwiftSymbols</key>   <true/>
-              <key>compileBitcode</key>      <false/>
-              <key>uploadSymbols</key>       <true/>
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>${BUNDLE_ID}</key>
-                  <string>${PP_UUID}</string>
-              </dict>
-          </dict>
-          </plist>
-          PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>              <string>ad-hoc</string>
+    <key>teamID</key>              <string>${TEAM_ID}</string>
+    <key>signingStyle</key>        <string>manual</string>
+    <key>stripSwiftSymbols</key>   <true/>
+    <key>compileBitcode</key>      <false/>
+    <key>uploadSymbols</key>       <true/>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>${BUNDLE_ID}</key>    <string>${PP_UUID}</string>
+    </dict>
+</dict>
+</plist>
+PLIST
 
       # ── 7. Export IPA ─────────────────────────────────────────────────────────
       - name: xcodebuild exportArchive
@@ -153,9 +160,11 @@ jobs:
             | xcpretty --color || true
 
           IPA=$(find "$EXPORT_PATH" -name "*.ipa" | head -1)
-          test -f "$IPA" || { echo "IPA not found after export!"; exit 1; }
-          echo "IPA_PATH=$IPA"    >> "$GITHUB_ENV"
-          echo "IPA_NAME=$(basename $IPA)" >> "$GITHUB_ENV"
+          test -f "$IPA" || { echo "::error::IPA not found after export"; exit 1; }
+
+          IPA_NAME=$(basename "$IPA")
+          echo "IPA_PATH=$IPA"      >> "$GITHUB_ENV"
+          echo "IPA_NAME=$IPA_NAME" >> "$GITHUB_ENV"
           echo "IPA size: $(du -sh "$IPA" | cut -f1)"
 
       # ── 8. Generate manifest.plist + install.html ─────────────────────────────
@@ -166,9 +175,11 @@ jobs:
           BASE="https://github.com/${REPO}/releases/download/${TAG}"
           IPA_URL="${BASE}/${IPA_NAME}"
           MANIFEST_URL="${BASE}/manifest.plist"
+          INSTALL_URL="${BASE}/install.html"
 
-          echo "IPA URL     : $IPA_URL"
-          echo "Manifest URL: $MANIFEST_URL"
+          echo "IPA      : $IPA_URL"
+          echo "Manifest : $MANIFEST_URL"
+          echo "Install  : $INSTALL_URL"
 
           # ── manifest.plist ────────────────────────────────────────────────────
           cat > "$RUNNER_TEMP/manifest.plist" <<PLIST
@@ -183,8 +194,8 @@ jobs:
       <key>assets</key>
       <array>
         <dict>
-          <key>kind</key>   <string>software-package</string>
-          <key>url</key>    <string>${IPA_URL}</string>
+          <key>kind</key> <string>software-package</string>
+          <key>url</key>  <string>${IPA_URL}</string>
         </dict>
       </array>
       <key>metadata</key>
@@ -227,16 +238,14 @@ PLIST
          text-decoration:none;margin-bottom:28px;
          box-shadow:0 6px 20px rgba(232,137,43,.40)}
     .btn:active{opacity:.85}
-    .steps{background:#FFF1E0;border-radius:14px;padding:18px 20px;
-           margin-bottom:20px}
+    .steps{background:#FFF1E0;border-radius:14px;padding:18px 20px;margin-bottom:20px}
     .steps p{font-size:13px;font-weight:700;color:#E8892B;margin-bottom:10px}
     .steps ol{padding-left:18px}
     .steps li{font-size:13px;color:#3D1F08;margin-bottom:7px;line-height:1.5}
     .steps li strong{color:#C4701A}
     .meta{text-align:center;font-size:11px;color:#96705A;line-height:1.7}
-    .warning{background:#FFF1E0;border-left:4px solid #E8892B;
-             border-radius:8px;padding:12px 14px;font-size:12px;
-             color:#92400E;margin-top:16px;line-height:1.6}
+    .warning{background:#FFF1E0;border-left:4px solid #E8892B;border-radius:8px;
+             padding:12px 14px;font-size:12px;color:#92400E;margin-top:16px;line-height:1.6}
   </style>
 </head>
 <body>
@@ -253,21 +262,15 @@ PLIST
     <div class="steps">
       <p>📋 Before you install</p>
       <ol>
-        <li>Your device <strong>UDID must be registered</strong> in the
-            Ad&nbsp;Hoc provisioning profile.</li>
-        <li>Tap the button above <strong>in Safari</strong>
-            (other browsers won't work).</li>
-        <li>After install go to <strong>Settings → General →
-            VPN &amp; Device Management</strong> and trust the
-            developer certificate.</li>
+        <li>Your device <strong>UDID must be registered</strong> in the Ad&nbsp;Hoc provisioning profile.</li>
+        <li>Tap the button above <strong>in Safari</strong> (other browsers won't work).</li>
+        <li>After install go to <strong>Settings → General → VPN &amp; Device Management</strong> and trust the developer certificate.</li>
       </ol>
     </div>
 
     <p class="meta">
       ${BUNDLE_ID}<br>
-      Built from
-      <a href="https://github.com/${REPO}/releases/tag/${TAG}"
-         style="color:#E8892B">${TAG}</a>
+      Built from <a href="https://github.com/${REPO}/releases/tag/${TAG}" style="color:#E8892B">${TAG}</a>
     </p>
 
     <div class="warning">
@@ -283,9 +286,9 @@ HTML
           echo "MANIFEST_PATH=$RUNNER_TEMP/manifest.plist" >> "$GITHUB_ENV"
           echo "INSTALL_PATH=$RUNNER_TEMP/install.html"    >> "$GITHUB_ENV"
           echo "RELEASE_TAG=$TAG"                          >> "$GITHUB_ENV"
-          echo "INSTALL_URL=${BASE}/install.html"          >> "$GITHUB_ENV"
+          echo "INSTALL_URL=$INSTALL_URL"                  >> "$GITHUB_ENV"
 
-      # ── 9. Upload IPA + manifest.plist + install.html to the release ──────────
+      # ── 9. Upload IPA + manifest.plist + install.html ────────────────────────
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -313,12 +316,10 @@ Open **[install.html](${INSTALL_URL})** on your iPhone or iPad in **Safari** and
 > Your device UDID must be registered in the provisioning profile.
 > After install: **Settings → General → VPN & Device Management** → trust the certificate."
 
-          # Only append if the section isn't already there
           if ! echo "$CURRENT" | grep -q "Over The Air Install"; then
-            NEW_BODY="${CURRENT}${OTA_SECTION}"
             gh release edit "$RELEASE_TAG" \
               --repo "${{ github.repository }}" \
-              --notes "$NEW_BODY"
+              --notes "${CURRENT}${OTA_SECTION}"
           fi
 
       # ── 11. Cleanup keychain ──────────────────────────────────────────────────
