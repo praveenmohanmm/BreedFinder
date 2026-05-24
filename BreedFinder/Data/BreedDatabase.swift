@@ -255,21 +255,23 @@ enum BreedDatabase {
         lifespan: Double, grooming: Double, vetVisits: Double,
         loyalty: Double, singleOwner: Double
     ) -> [DogBreed] {
-        var ranked = all.map { breed -> DogBreed in
+        var ranked: [DogBreed] = all.map { breed -> DogBreed in
             var b = breed
-            let distance =
-                abs(breed.size              - size)         +
-                abs(breed.energyLevel       - energy)       +
-                abs(breed.shedding          - shedding)     +
-                abs(breed.guardedness       - guardedness)  +
-                abs(breed.aggressiveness    - aggressiveness) +
-                abs(breed.immunity          - immunity)     +
-                abs(breed.lifespan          - lifespan)     +
-                abs(breed.groomingNeeds     - grooming)     +
-                abs(breed.vetVisitsRequired - vetVisits)    +
-                abs(breed.loyalty           - loyalty)      +
-                abs(breed.singleOwner       - singleOwner)
-            b.matchScore = max(0, min(1, 1.0 - distance / (11.0 * 10.0)))
+            // Explicit Double annotation avoids WMO type-checker timeout on the
+            // long + chain (Swift SR-11524 / "unable to type-check in reasonable time").
+            let d0: Double = abs(breed.size              - size)
+            let d1: Double = abs(breed.energyLevel       - energy)
+            let d2: Double = abs(breed.shedding          - shedding)
+            let d3: Double = abs(breed.guardedness       - guardedness)
+            let d4: Double = abs(breed.aggressiveness    - aggressiveness)
+            let d5: Double = abs(breed.immunity          - immunity)
+            let d6: Double = abs(breed.lifespan          - lifespan)
+            let d7: Double = abs(breed.groomingNeeds     - grooming)
+            let d8: Double = abs(breed.vetVisitsRequired - vetVisits)
+            let d9: Double = abs(breed.loyalty           - loyalty)
+            let d10: Double = abs(breed.singleOwner      - singleOwner)
+            let distance: Double = d0 + d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9 + d10
+            b.matchScore = max(0.0, min(1.0, 1.0 - distance / 110.0))
             b.imageUrl = nil   // reset so placeholder shows while image loads
             return b
         }
