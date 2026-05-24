@@ -390,32 +390,34 @@
 
                     <!-- ── FIND MY BREED BUTTON ──────────────────────────── -->
                     <!--
-                        Cross-platform touch strategy:
-                        • Android: CollectionView's scroll gesture swallows TapGestureRecognizer,
-                          so a real Button element is required.
-                        • iOS: a Border rendered on top of a transparent Button absorbs touches
-                          before they reach the Button (even when the Button has higher z-order
-                          in some CollectionView header rendering paths).
-                        Fix: declare the Button FIRST (bottom z-order), then the visual Border
-                        SECOND (top z-order, InputTransparent="True").  iOS hit-tests front-to-back,
-                        finds the Border is input-transparent, skips it, and routes the touch to the
-                        Button behind it.  Android behaves the same way.  Visuals are unaffected.
+                        Cross-platform touch strategy inside CollectionView.Header:
+
+                        • iOS  — Button inside UICollectionReusableView (the CV header wrapper)
+                                 does not reliably fire on iOS regardless of z-order or
+                                 InputTransparent tricks.  TapGestureRecognizer attached directly
+                                 to a Border/View DOES fire reliably in this context.
+
+                        • Android — RecyclerView's scroll gesture swallows TapGestureRecognizer
+                                    on Android.  A real Button calls
+                                    RequestDisallowInterceptTouchEvent on the parent, which
+                                    prevents the RecyclerView from stealing the touch.
+
+                        Solution:
+                          ① Visual Border has a TapGestureRecognizer  → handles iOS taps.
+                          ② Transparent Button overlay is visible ONLY on Android  → handles
+                             Android taps without conflicting with the scroll gesture.
+                          The Button is hidden on iOS (OnPlatform) so it cannot double-fire
+                          alongside the TapGestureRecognizer.
                     -->
                     <Grid Margin="12,14,12,4" HeightRequest="60">
 
-                        <!-- ① Touch target — sits at bottom of z-stack but receives all touches
-                             because the visual layer above it is InputTransparent. -->
-                        <Button Command="{Binding FindBreedsAsyncCommand}"
-                                IsEnabled="{Binding IsNotLoading}"
-                                BackgroundColor="Transparent"
-                                BorderWidth="0"
-                                CornerRadius="20"
-                                HeightRequest="60" />
-
-                        <!-- ② Visual-only gradient layer — InputTransparent="True" lets every
-                             touch fall through to the Button declared above. -->
-                        <Border InputTransparent="True"
-                                StrokeShape="RoundRectangle 20" Stroke="Transparent">
+                        <!-- ① Gradient visual + iOS touch handler -->
+                        <Border StrokeShape="RoundRectangle 20" Stroke="Transparent">
+                            <Border.GestureRecognizers>
+                                <!-- TapGestureRecognizer is the reliable touch mechanism
+                                     inside CollectionView.Header on iOS. -->
+                                <TapGestureRecognizer Command="{Binding FindBreedsAsyncCommand}" />
+                            </Border.GestureRecognizers>
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="#F4A853" Offset="0" />
@@ -441,6 +443,23 @@
                                    TextColor="White" FontSize="17" FontAttributes="Bold"
                                    HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
+
+                        <!-- ② Android-only transparent Button overlay.
+                             Hidden on iOS so it cannot double-fire with the
+                             TapGestureRecognizer above. -->
+                        <Button Command="{Binding FindBreedsAsyncCommand}"
+                                IsEnabled="{Binding IsNotLoading}"
+                                BackgroundColor="Transparent"
+                                BorderWidth="0"
+                                CornerRadius="20"
+                                HeightRequest="60">
+                            <Button.IsVisible>
+                                <OnPlatform x:TypeArguments="x:Boolean">
+                                    <On Platform="Android" Value="True" />
+                                    <On Platform="iOS" Value="False" />
+                                </OnPlatform>
+                            </Button.IsVisible>
+                        </Button>
 
                     </Grid>
 
