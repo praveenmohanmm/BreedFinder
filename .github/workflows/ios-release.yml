@@ -3,7 +3,7 @@ name: iOS Signed Release
 # ─────────────────────────────────────────────────────────────────────────────
 # Triggers
 #   • Automatically when a GitHub Release is published
-#   • Manually via workflow_dispatch (specify the tag to attach the IPA to)
+#   • Manually via workflow_dispatch (specify the tag to attach assets to)
 # ─────────────────────────────────────────────────────────────────────────────
 on:
   release:
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to attach the signed IPA to (e.g. v2.0.0)'
+        description: 'Release tag to attach assets to (e.g. v2.0.0)'
         required: true
         default: 'v2.0.0'
 
@@ -29,12 +29,13 @@ env:
   XCODE_PROJECT: BreedFinder.xcodeproj
   SCHEME:        BreedFinder
   BUNDLE_ID:     com.poodlesoft.breedfinder
+  APP_NAME:      Breed Finder
   ARCHIVE_PATH:  ${{ runner.temp }}/BreedFinder.xcarchive
   EXPORT_PATH:   ${{ runner.temp }}/IPA
 
 jobs:
   signed-ipa:
-    name: Build · Sign · Upload IPA
+    name: Build · Sign · OTA · Upload
     runs-on: macos-latest
 
     steps:
@@ -83,7 +84,6 @@ jobs:
           PP=$RUNNER_TEMP/profile.mobileprovision
           echo "$PP_BASE64" | base64 --decode -o "$PP"
 
-          # Extract UUID (PlistBuddy needs a real file, not stdin)
           security cms -D -i "$PP" > "$RUNNER_TEMP/profile.plist"
           PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$RUNNER_TEMP/profile.plist")
           PP_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$RUNNER_TEMP/profile.plist")
@@ -114,10 +114,9 @@ jobs:
             PROVISIONING_PROFILE="$PP_UUID" \
             | xcpretty --color || true
 
-          # Verify archive exists
           test -d "$ARCHIVE_PATH" || { echo "Archive not found!"; exit 1; }
 
-      # ── 6. Export Options plist (generated so TEAM_ID is substituted) ─────────
+      # ── 6. ExportOptions.plist (generated with live env values) ──────────────
       - name: Generate ExportOptions.plist
         env:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -148,30 +147,181 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild -exportArchive \
-            -archivePath  "$ARCHIVE_PATH" \
-            -exportPath   "$EXPORT_PATH" \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath  "$EXPORT_PATH" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             | xcpretty --color || true
 
           IPA=$(find "$EXPORT_PATH" -name "*.ipa" | head -1)
-          test -f "$IPA" || { echo "IPA not found!"; exit 1; }
-          echo "IPA_PATH=$IPA" >> "$GITHUB_ENV"
+          test -f "$IPA" || { echo "IPA not found after export!"; exit 1; }
+          echo "IPA_PATH=$IPA"    >> "$GITHUB_ENV"
+          echo "IPA_NAME=$(basename $IPA)" >> "$GITHUB_ENV"
           echo "IPA size: $(du -sh "$IPA" | cut -f1)"
 
-      # ── 8. Upload IPA to the GitHub Release ───────────────────────────────────
-      - name: Upload IPA to release
+      # ── 8. Generate manifest.plist + install.html ─────────────────────────────
+      - name: Generate OTA files
+        run: |
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag }}"
+          REPO="${{ github.repository }}"
+          BASE="https://github.com/${REPO}/releases/download/${TAG}"
+          IPA_URL="${BASE}/${IPA_NAME}"
+          MANIFEST_URL="${BASE}/manifest.plist"
+
+          echo "IPA URL     : $IPA_URL"
+          echo "Manifest URL: $MANIFEST_URL"
+
+          # ── manifest.plist ────────────────────────────────────────────────────
+          cat > "$RUNNER_TEMP/manifest.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>items</key>
+  <array>
+    <dict>
+      <key>assets</key>
+      <array>
+        <dict>
+          <key>kind</key>   <string>software-package</string>
+          <key>url</key>    <string>${IPA_URL}</string>
+        </dict>
+      </array>
+      <key>metadata</key>
+      <dict>
+        <key>bundle-identifier</key> <string>${BUNDLE_ID}</string>
+        <key>bundle-version</key>    <string>${TAG}</string>
+        <key>kind</key>              <string>software</string>
+        <key>title</key>             <string>${APP_NAME}</string>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>
+PLIST
+
+          # ── install.html ──────────────────────────────────────────────────────
+          cat > "$RUNNER_TEMP/install.html" <<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>Install ${APP_NAME}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+         background:#FFF8EF;color:#3D1F08;min-height:100vh;
+         display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{background:#fff;border-radius:24px;padding:36px 28px;
+          max-width:420px;width:100%;
+          box-shadow:0 8px 32px rgba(232,137,43,.18)}
+    .paw{font-size:52px;text-align:center;margin-bottom:12px}
+    h1{font-size:26px;font-weight:800;text-align:center;
+       background:linear-gradient(90deg,#F4A853,#E8892B);
+       -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .subtitle{text-align:center;color:#96705A;font-size:14px;margin:6px 0 28px}
+    .btn{display:block;width:100%;padding:17px;border-radius:16px;
+         background:linear-gradient(90deg,#F4A853,#E8892B,#C4701A);
+         color:#fff;font-size:17px;font-weight:700;text-align:center;
+         text-decoration:none;margin-bottom:28px;
+         box-shadow:0 6px 20px rgba(232,137,43,.40)}
+    .btn:active{opacity:.85}
+    .steps{background:#FFF1E0;border-radius:14px;padding:18px 20px;
+           margin-bottom:20px}
+    .steps p{font-size:13px;font-weight:700;color:#E8892B;margin-bottom:10px}
+    .steps ol{padding-left:18px}
+    .steps li{font-size:13px;color:#3D1F08;margin-bottom:7px;line-height:1.5}
+    .steps li strong{color:#C4701A}
+    .meta{text-align:center;font-size:11px;color:#96705A;line-height:1.7}
+    .warning{background:#FFF1E0;border-left:4px solid #E8892B;
+             border-radius:8px;padding:12px 14px;font-size:12px;
+             color:#92400E;margin-top:16px;line-height:1.6}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="paw">🐾</div>
+    <h1>${APP_NAME}</h1>
+    <p class="subtitle">Find your perfect dog breed &nbsp;·&nbsp; ${TAG}</p>
+
+    <a class="btn"
+       href="itms-services://?action=download-manifest&amp;url=${MANIFEST_URL}">
+      ⬇&nbsp;&nbsp;Install on iPhone / iPad
+    </a>
+
+    <div class="steps">
+      <p>📋 Before you install</p>
+      <ol>
+        <li>Your device <strong>UDID must be registered</strong> in the
+            Ad&nbsp;Hoc provisioning profile.</li>
+        <li>Tap the button above <strong>in Safari</strong>
+            (other browsers won't work).</li>
+        <li>After install go to <strong>Settings → General →
+            VPN &amp; Device Management</strong> and trust the
+            developer certificate.</li>
+      </ol>
+    </div>
+
+    <p class="meta">
+      ${BUNDLE_ID}<br>
+      Built from
+      <a href="https://github.com/${REPO}/releases/tag/${TAG}"
+         style="color:#E8892B">${TAG}</a>
+    </p>
+
+    <div class="warning">
+      ⚠️ This is an <strong>Ad Hoc</strong> build — not from the App Store.
+      Open this page in <strong>Safari</strong> on your iOS device.
+      The button will not work on a Mac or in other browsers.
+    </div>
+  </div>
+</body>
+</html>
+HTML
+
+          echo "MANIFEST_PATH=$RUNNER_TEMP/manifest.plist" >> "$GITHUB_ENV"
+          echo "INSTALL_PATH=$RUNNER_TEMP/install.html"    >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$TAG"                          >> "$GITHUB_ENV"
+          echo "INSTALL_URL=${BASE}/install.html"          >> "$GITHUB_ENV"
+
+      # ── 9. Upload IPA + manifest.plist + install.html to the release ──────────
+      - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ github.event.release.tag_name || github.event.inputs.tag }}"
-          echo "Uploading to release: $TAG"
-          gh release upload "$TAG" \
+          echo "Uploading to release: $RELEASE_TAG"
+          gh release upload "$RELEASE_TAG" \
             "$IPA_PATH" \
+            "$MANIFEST_PATH" \
+            "$INSTALL_PATH" \
             --repo "${{ github.repository }}" \
             --clobber
 
-      # ── 9. Cleanup keychain ───────────────────────────────────────────────────
+      # ── 10. Patch release notes with OTA install link ─────────────────────────
+      - name: Update release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CURRENT=$(gh release view "$RELEASE_TAG" \
+            --repo "${{ github.repository }}" --json body -q .body)
+
+          OTA_SECTION="
+---
+### 🍎 iOS — Over The Air Install
+Open **[install.html](${INSTALL_URL})** on your iPhone or iPad in **Safari** and tap the install button.
+> Your device UDID must be registered in the provisioning profile.
+> After install: **Settings → General → VPN & Device Management** → trust the certificate."
+
+          # Only append if the section isn't already there
+          if ! echo "$CURRENT" | grep -q "Over The Air Install"; then
+            NEW_BODY="${CURRENT}${OTA_SECTION}"
+            gh release edit "$RELEASE_TAG" \
+              --repo "${{ github.repository }}" \
+              --notes "$NEW_BODY"
+          fi
+
+      # ── 11. Cleanup keychain ──────────────────────────────────────────────────
       - name: Remove temp keychain
         if: always()
-        run: |
-          security delete-keychain "$RUNNER_TEMP/build.keychain-db" 2>/dev/null || true
+        run: security delete-keychain "$RUNNER_TEMP/build.keychain-db" 2>/dev/null || true
