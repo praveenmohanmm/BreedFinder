@@ -1,0 +1,177 @@
+name: iOS Signed Release
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers
+#   • Automatically when a GitHub Release is published
+#   • Manually via workflow_dispatch (specify the tag to attach the IPA to)
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach the signed IPA to (e.g. v2.0.0)'
+        required: true
+        default: 'v2.0.0'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Required GitHub Secrets  (Settings → Secrets and variables → Actions)
+#
+#   APPLE_CERTIFICATE_BASE64          Distribution .p12 as base64
+#   APPLE_CERTIFICATE_PASSWORD        Password used when exporting the .p12
+#   APPLE_PROVISIONING_PROFILE_BASE64 Ad-Hoc .mobileprovision as base64
+#   APPLE_TEAM_ID                     10-char Apple Developer Team ID
+#   KEYCHAIN_PASSWORD                 Any strong random string (temp keychain)
+# ─────────────────────────────────────────────────────────────────────────────
+
+env:
+  XCODE_PROJECT: BreedFinder.xcodeproj
+  SCHEME:        BreedFinder
+  BUNDLE_ID:     com.poodlesoft.breedfinder
+  ARCHIVE_PATH:  ${{ runner.temp }}/BreedFinder.xcarchive
+  EXPORT_PATH:   ${{ runner.temp }}/IPA
+
+jobs:
+  signed-ipa:
+    name: Build · Sign · Upload IPA
+    runs-on: macos-latest
+
+    steps:
+      # ── 1. Source ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Xcode ─────────────────────────────────────────────────────────────
+      - name: Select latest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
+
+      # ── 3. Certificate → temp keychain ───────────────────────────────────────
+      - name: Import signing certificate
+        env:
+          P12_BASE64:   ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KC_PASSWORD:  ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          P12=$RUNNER_TEMP/cert.p12
+          KC=$RUNNER_TEMP/build.keychain-db
+
+          echo "$P12_BASE64" | base64 --decode -o "$P12"
+
+          security create-keychain -p "$KC_PASSWORD" "$KC"
+          security default-keychain -s "$KC"
+          security unlock-keychain -p "$KC_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+
+          security import "$P12" -P "$P12_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: -s -k "$KC_PASSWORD" "$KC"
+
+          echo "Installed identities:"
+          security find-identity -v -p codesigning "$KC"
+
+      # ── 4. Provisioning profile ───────────────────────────────────────────────
+      - name: Install provisioning profile
+        env:
+          PP_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP=$RUNNER_TEMP/profile.mobileprovision
+          echo "$PP_BASE64" | base64 --decode -o "$PP"
+
+          # Extract UUID (PlistBuddy needs a real file, not stdin)
+          security cms -D -i "$PP" > "$RUNNER_TEMP/profile.plist"
+          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$RUNNER_TEMP/profile.plist")
+          PP_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$RUNNER_TEMP/profile.plist")
+          echo "Profile: $PP_NAME  ($PP_UUID)"
+
+          PROFILES=~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p "$PROFILES"
+          cp "$PP" "$PROFILES/$PP_UUID.mobileprovision"
+
+          echo "PP_UUID=$PP_UUID" >> "$GITHUB_ENV"
+          echo "PP_NAME=$PP_NAME" >> "$GITHUB_ENV"
+
+      # ── 5. Archive ────────────────────────────────────────────────────────────
+      - name: xcodebuild archive
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project "$XCODE_PROJECT" \
+            -scheme   "$SCHEME" \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -archivePath "$ARCHIVE_PATH" \
+            -configuration Release \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE="$PP_UUID" \
+            | xcpretty --color || true
+
+          # Verify archive exists
+          test -d "$ARCHIVE_PATH" || { echo "Archive not found!"; exit 1; }
+
+      # ── 6. Export Options plist (generated so TEAM_ID is substituted) ─────────
+      - name: Generate ExportOptions.plist
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>              <string>ad-hoc</string>
+              <key>teamID</key>              <string>${TEAM_ID}</string>
+              <key>signingStyle</key>        <string>manual</string>
+              <key>stripSwiftSymbols</key>   <true/>
+              <key>compileBitcode</key>      <false/>
+              <key>uploadSymbols</key>       <true/>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>${BUNDLE_ID}</key>
+                  <string>${PP_UUID}</string>
+              </dict>
+          </dict>
+          </plist>
+          PLIST
+
+      # ── 7. Export IPA ─────────────────────────────────────────────────────────
+      - name: xcodebuild exportArchive
+        run: |
+          set -o pipefail
+          xcodebuild -exportArchive \
+            -archivePath  "$ARCHIVE_PATH" \
+            -exportPath   "$EXPORT_PATH" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            | xcpretty --color || true
+
+          IPA=$(find "$EXPORT_PATH" -name "*.ipa" | head -1)
+          test -f "$IPA" || { echo "IPA not found!"; exit 1; }
+          echo "IPA_PATH=$IPA" >> "$GITHUB_ENV"
+          echo "IPA size: $(du -sh "$IPA" | cut -f1)"
+
+      # ── 8. Upload IPA to the GitHub Release ───────────────────────────────────
+      - name: Upload IPA to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag }}"
+          echo "Uploading to release: $TAG"
+          gh release upload "$TAG" \
+            "$IPA_PATH" \
+            --repo "${{ github.repository }}" \
+            --clobber
+
+      # ── 9. Cleanup keychain ───────────────────────────────────────────────────
+      - name: Remove temp keychain
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/build.keychain-db" 2>/dev/null || true
