@@ -31,6 +31,8 @@ jobs:
   signed-ipa:
     name: Build · Sign · OTA · Upload
     runs-on: macos-latest
+    permissions:
+      contents: write   # required to upload assets to a GitHub Release
 
     steps:
       # ── 1. Source ─────────────────────────────────────────────────────────────
