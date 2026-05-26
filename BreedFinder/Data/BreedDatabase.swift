@@ -3,6 +3,12 @@ import Foundation
 // MARK: - Breed database + matching logic
 enum BreedDatabase {
 
+    // Wikimedia Commons stable-redirect base.  Special:FilePath redirects to
+    // the actual CDN image — no MD5 path needed, always resolvable.
+    private static func wiki(_ filename: String) -> String {
+        "https://commons.wikimedia.org/wiki/Special:FilePath/\(filename)?width=400"
+    }
+
     // MARK: All breeds
     static let all: [DogBreed] = [
         DogBreed(
@@ -11,7 +17,8 @@ enum BreedDatabase {
             origin: "Canada", group: "Sporting", emoji: "🐕", accentHex: "#F59E0B",
             dogCeoBreedKey: "labrador",
             size: 7, energyLevel: 8, shedding: 7, guardedness: 5, aggressiveness: 2,
-            immunity: 8, lifespan: 7, groomingNeeds: 3, vetVisitsRequired: 5, loyalty: 9, singleOwner: 4
+            immunity: 8, lifespan: 7, groomingNeeds: 3, vetVisitsRequired: 5, loyalty: 9, singleOwner: 4,
+            imageUrl: wiki("Labrador_Retriever_gelb.jpg")
         ),
         DogBreed(
             name: "German Shepherd",
@@ -19,7 +26,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Herding", emoji: "🐺", accentHex: "#92400E",
             dogCeoBreedKey: "germanshepherd",
             size: 8, energyLevel: 8, shedding: 9, guardedness: 9, aggressiveness: 5,
-            immunity: 7, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 5, loyalty: 9, singleOwner: 7
+            immunity: 7, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 5, loyalty: 9, singleOwner: 7,
+            imageUrl: wiki("German_Shepherd_Dog.jpg")
         ),
         DogBreed(
             name: "Golden Retriever",
@@ -27,7 +35,8 @@ enum BreedDatabase {
             origin: "Scotland", group: "Sporting", emoji: "🦮", accentHex: "#D97706",
             dogCeoBreedKey: "retriever/golden",
             size: 7, energyLevel: 7, shedding: 8, guardedness: 4, aggressiveness: 1,
-            immunity: 7, lifespan: 7, groomingNeeds: 6, vetVisitsRequired: 5, loyalty: 9, singleOwner: 3
+            immunity: 7, lifespan: 7, groomingNeeds: 6, vetVisitsRequired: 5, loyalty: 9, singleOwner: 3,
+            imageUrl: wiki("Golden_Retriever_Dukedestiny01_drvd.jpg")
         ),
         DogBreed(
             name: "Poodle (Standard)",
@@ -35,7 +44,8 @@ enum BreedDatabase {
             origin: "Germany/France", group: "Non-Sporting", emoji: "🐩", accentHex: "#7C3AED",
             dogCeoBreedKey: "poodle/standard",
             size: 6, energyLevel: 7, shedding: 1, guardedness: 5, aggressiveness: 2,
-            immunity: 8, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 4, loyalty: 8, singleOwner: 5
+            immunity: 8, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 4, loyalty: 8, singleOwner: 5,
+            imageUrl: wiki("Caniche_Abricot.jpg")
         ),
         DogBreed(
             name: "Chihuahua",
@@ -43,7 +53,8 @@ enum BreedDatabase {
             origin: "Mexico", group: "Toy", emoji: "🐾", accentHex: "#DC2626",
             dogCeoBreedKey: "chihuahua",
             size: 1, energyLevel: 6, shedding: 3, guardedness: 7, aggressiveness: 7,
-            immunity: 6, lifespan: 10, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 9, singleOwner: 9
+            immunity: 6, lifespan: 10, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 9, singleOwner: 9,
+            imageUrl: wiki("Chi-chihuahua.jpg")
         ),
         DogBreed(
             name: "French Bulldog",
@@ -51,7 +62,8 @@ enum BreedDatabase {
             origin: "France", group: "Non-Sporting", emoji: "🐶", accentHex: "#4B5563",
             dogCeoBreedKey: "bulldog/french",
             size: 3, energyLevel: 4, shedding: 4, guardedness: 4, aggressiveness: 3,
-            immunity: 4, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 8, loyalty: 8, singleOwner: 6
+            immunity: 4, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 8, loyalty: 8, singleOwner: 6,
+            imageUrl: wiki("French_Bulldog_Bentley.jpg")
         ),
         DogBreed(
             name: "Bulldog",
@@ -59,7 +71,8 @@ enum BreedDatabase {
             origin: "England", group: "Non-Sporting", emoji: "🐶", accentHex: "#6B7280",
             dogCeoBreedKey: "bulldog/english",
             size: 5, energyLevel: 2, shedding: 5, guardedness: 5, aggressiveness: 3,
-            immunity: 4, lifespan: 5, groomingNeeds: 2, vetVisitsRequired: 7, loyalty: 7, singleOwner: 5
+            immunity: 4, lifespan: 5, groomingNeeds: 2, vetVisitsRequired: 7, loyalty: 7, singleOwner: 5,
+            imageUrl: wiki("Bulldog_inglese.jpg")
         ),
         DogBreed(
             name: "Beagle",
@@ -67,7 +80,8 @@ enum BreedDatabase {
             origin: "England", group: "Hound", emoji: "🐕", accentHex: "#B45309",
             dogCeoBreedKey: "beagle",
             size: 4, energyLevel: 7, shedding: 5, guardedness: 4, aggressiveness: 2,
-            immunity: 8, lifespan: 8, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 7, singleOwner: 3
+            immunity: 8, lifespan: 8, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 7, singleOwner: 3,
+            imageUrl: wiki("Beagle_Gidget.jpg")
         ),
         DogBreed(
             name: "Rottweiler",
@@ -75,7 +89,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Working", emoji: "🐕‍🦺", accentHex: "#1F2937",
             dogCeoBreedKey: "rottweiler",
             size: 9, energyLevel: 6, shedding: 5, guardedness: 9, aggressiveness: 6,
-            immunity: 7, lifespan: 6, groomingNeeds: 3, vetVisitsRequired: 5, loyalty: 9, singleOwner: 8
+            immunity: 7, lifespan: 6, groomingNeeds: 3, vetVisitsRequired: 5, loyalty: 9, singleOwner: 8,
+            imageUrl: wiki("Rottweiler.jpg")
         ),
         DogBreed(
             name: "Yorkshire Terrier",
@@ -83,7 +98,8 @@ enum BreedDatabase {
             origin: "England", group: "Toy", emoji: "🐾", accentHex: "#A78BFA",
             dogCeoBreedKey: "yorkshire",
             size: 1, energyLevel: 6, shedding: 1, guardedness: 6, aggressiveness: 5,
-            immunity: 6, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 5, loyalty: 8, singleOwner: 7
+            immunity: 6, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 5, loyalty: 8, singleOwner: 7,
+            imageUrl: wiki("YorkshireTerrier.jpg")
         ),
         DogBreed(
             name: "Siberian Husky",
@@ -91,7 +107,8 @@ enum BreedDatabase {
             origin: "Russia", group: "Working", emoji: "🐺", accentHex: "#2563EB",
             dogCeoBreedKey: "husky",
             size: 7, energyLevel: 10, shedding: 10, guardedness: 3, aggressiveness: 3,
-            immunity: 9, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 3, loyalty: 7, singleOwner: 4
+            immunity: 9, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 3, loyalty: 7, singleOwner: 4,
+            imageUrl: wiki("Siberian-husky.jpg")
         ),
         DogBreed(
             name: "Pomeranian",
@@ -99,7 +116,8 @@ enum BreedDatabase {
             origin: "Germany/Poland", group: "Toy", emoji: "🐾", accentHex: "#EA580C",
             dogCeoBreedKey: "pomeranian",
             size: 1, energyLevel: 7, shedding: 6, guardedness: 6, aggressiveness: 4,
-            immunity: 7, lifespan: 9, groomingNeeds: 8, vetVisitsRequired: 4, loyalty: 8, singleOwner: 7
+            immunity: 7, lifespan: 9, groomingNeeds: 8, vetVisitsRequired: 4, loyalty: 8, singleOwner: 7,
+            imageUrl: wiki("Pomeranian_orange_sable.jpg")
         ),
         DogBreed(
             name: "Border Collie",
@@ -107,7 +125,8 @@ enum BreedDatabase {
             origin: "Scotland/England", group: "Herding", emoji: "🐕", accentHex: "#065F46",
             dogCeoBreedKey: "collie/border",
             size: 5, energyLevel: 10, shedding: 6, guardedness: 5, aggressiveness: 3,
-            immunity: 9, lifespan: 8, groomingNeeds: 5, vetVisitsRequired: 3, loyalty: 9, singleOwner: 6
+            immunity: 9, lifespan: 8, groomingNeeds: 5, vetVisitsRequired: 3, loyalty: 9, singleOwner: 6,
+            imageUrl: wiki("Border_Collie_600.jpg")
         ),
         DogBreed(
             name: "Shih Tzu",
@@ -115,7 +134,8 @@ enum BreedDatabase {
             origin: "China/Tibet", group: "Toy", emoji: "🐾", accentHex: "#BE185D",
             dogCeoBreedKey: "shihtzu",
             size: 2, energyLevel: 4, shedding: 1, guardedness: 4, aggressiveness: 3,
-            immunity: 6, lifespan: 9, groomingNeeds: 10, vetVisitsRequired: 5, loyalty: 8, singleOwner: 6
+            immunity: 6, lifespan: 9, groomingNeeds: 10, vetVisitsRequired: 5, loyalty: 8, singleOwner: 6,
+            imageUrl: wiki("Shih_Tzu_-_Shirubii.jpg")
         ),
         DogBreed(
             name: "Great Dane",
@@ -123,7 +143,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Working", emoji: "🐕", accentHex: "#1D4ED8",
             dogCeoBreedKey: "dane/great",
             size: 10, energyLevel: 5, shedding: 5, guardedness: 7, aggressiveness: 3,
-            immunity: 5, lifespan: 4, groomingNeeds: 2, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5
+            immunity: 5, lifespan: 4, groomingNeeds: 2, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5,
+            imageUrl: wiki("Dogge_Hannelore.jpg")
         ),
         DogBreed(
             name: "Australian Shepherd",
@@ -131,7 +152,8 @@ enum BreedDatabase {
             origin: "United States", group: "Herding", emoji: "🐕", accentHex: "#7C3AED",
             dogCeoBreedKey: "australian/shepherd",
             size: 6, energyLevel: 10, shedding: 7, guardedness: 6, aggressiveness: 3,
-            immunity: 9, lifespan: 8, groomingNeeds: 6, vetVisitsRequired: 3, loyalty: 9, singleOwner: 5
+            immunity: 9, lifespan: 8, groomingNeeds: 6, vetVisitsRequired: 3, loyalty: 9, singleOwner: 5,
+            imageUrl: wiki("Australian_Shepherd_600.jpg")
         ),
         DogBreed(
             name: "Maltese",
@@ -139,7 +161,8 @@ enum BreedDatabase {
             origin: "Malta", group: "Toy", emoji: "🐾", accentHex: "#E879F9",
             dogCeoBreedKey: "maltese",
             size: 1, energyLevel: 5, shedding: 1, guardedness: 4, aggressiveness: 3,
-            immunity: 6, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 5, loyalty: 9, singleOwner: 7
+            immunity: 6, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 5, loyalty: 9, singleOwner: 7,
+            imageUrl: wiki("Maltese-dog.jpg")
         ),
         DogBreed(
             name: "Doberman Pinscher",
@@ -147,7 +170,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Working", emoji: "🐺", accentHex: "#111827",
             dogCeoBreedKey: "doberman",
             size: 8, energyLevel: 8, shedding: 3, guardedness: 10, aggressiveness: 5,
-            immunity: 7, lifespan: 7, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 10, singleOwner: 8
+            immunity: 7, lifespan: 7, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 10, singleOwner: 8,
+            imageUrl: wiki("Dobermann_handling.jpg")
         ),
         DogBreed(
             name: "Dachshund",
@@ -155,7 +179,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Hound", emoji: "🌭", accentHex: "#92400E",
             dogCeoBreedKey: "dachshund",
             size: 2, energyLevel: 5, shedding: 4, guardedness: 6, aggressiveness: 5,
-            immunity: 7, lifespan: 8, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 8, singleOwner: 6
+            immunity: 7, lifespan: 8, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 8, singleOwner: 6,
+            imageUrl: wiki("Dachshund_male_Flickr.jpg")
         ),
         DogBreed(
             name: "Pug",
@@ -163,7 +188,8 @@ enum BreedDatabase {
             origin: "China", group: "Toy", emoji: "🐾", accentHex: "#D97706",
             dogCeoBreedKey: "pug",
             size: 3, energyLevel: 4, shedding: 7, guardedness: 3, aggressiveness: 2,
-            immunity: 5, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 7, loyalty: 8, singleOwner: 6
+            immunity: 5, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 7, loyalty: 8, singleOwner: 6,
+            imageUrl: wiki("Pug_dog.jpg")
         ),
         DogBreed(
             name: "Boxer",
@@ -171,7 +197,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Working", emoji: "🐕", accentHex: "#B45309",
             dogCeoBreedKey: "boxer",
             size: 7, energyLevel: 8, shedding: 4, guardedness: 7, aggressiveness: 4,
-            immunity: 7, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 9, singleOwner: 6
+            immunity: 7, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 9, singleOwner: 6,
+            imageUrl: wiki("Boxer_female_3yo.jpg")
         ),
         DogBreed(
             name: "Saint Bernard",
@@ -179,7 +206,8 @@ enum BreedDatabase {
             origin: "Switzerland", group: "Working", emoji: "🐕", accentHex: "#991B1B",
             dogCeoBreedKey: "stbernard",
             size: 10, energyLevel: 4, shedding: 8, guardedness: 5, aggressiveness: 2,
-            immunity: 7, lifespan: 5, groomingNeeds: 7, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5
+            immunity: 7, lifespan: 5, groomingNeeds: 7, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5,
+            imageUrl: wiki("Saint_Bernard_dog.jpg")
         ),
         DogBreed(
             name: "Jack Russell Terrier",
@@ -187,7 +215,8 @@ enum BreedDatabase {
             origin: "England", group: "Terrier", emoji: "🐕", accentHex: "#065F46",
             dogCeoBreedKey: "terrier/jack",
             size: 2, energyLevel: 10, shedding: 4, guardedness: 6, aggressiveness: 6,
-            immunity: 9, lifespan: 9, groomingNeeds: 2, vetVisitsRequired: 3, loyalty: 7, singleOwner: 6
+            immunity: 9, lifespan: 9, groomingNeeds: 2, vetVisitsRequired: 3, loyalty: 7, singleOwner: 6,
+            imageUrl: wiki("Jack_Russell_Terrier.jpg")
         ),
         DogBreed(
             name: "Cocker Spaniel",
@@ -195,7 +224,8 @@ enum BreedDatabase {
             origin: "England", group: "Sporting", emoji: "🐕", accentHex: "#92400E",
             dogCeoBreedKey: "spaniel/cocker",
             size: 4, energyLevel: 6, shedding: 5, guardedness: 4, aggressiveness: 2,
-            immunity: 7, lifespan: 8, groomingNeeds: 8, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5
+            immunity: 7, lifespan: 8, groomingNeeds: 8, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5,
+            imageUrl: wiki("AmericanCockerSpaniel_wb.jpg")
         ),
         DogBreed(
             name: "Weimaraner",
@@ -203,7 +233,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Sporting", emoji: "🐕", accentHex: "#6B7280",
             dogCeoBreedKey: "weimaraner",
             size: 8, energyLevel: 9, shedding: 4, guardedness: 7, aggressiveness: 4,
-            immunity: 8, lifespan: 7, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 9, singleOwner: 7
+            immunity: 8, lifespan: 7, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 9, singleOwner: 7,
+            imageUrl: wiki("Weimaraner.jpg")
         ),
         DogBreed(
             name: "Miniature Schnauzer",
@@ -211,7 +242,8 @@ enum BreedDatabase {
             origin: "Germany", group: "Terrier", emoji: "🐾", accentHex: "#374151",
             dogCeoBreedKey: "schnauzer/miniature",
             size: 2, energyLevel: 7, shedding: 1, guardedness: 7, aggressiveness: 4,
-            immunity: 8, lifespan: 9, groomingNeeds: 7, vetVisitsRequired: 4, loyalty: 8, singleOwner: 6
+            immunity: 8, lifespan: 9, groomingNeeds: 7, vetVisitsRequired: 4, loyalty: 8, singleOwner: 6,
+            imageUrl: wiki("Miniature_Schnauzer.jpg")
         ),
         DogBreed(
             name: "Cavalier King Charles Spaniel",
@@ -219,7 +251,8 @@ enum BreedDatabase {
             origin: "England", group: "Toy", emoji: "🐾", accentHex: "#C2410C",
             dogCeoBreedKey: "spaniel/cavalier",
             size: 3, energyLevel: 5, shedding: 5, guardedness: 3, aggressiveness: 1,
-            immunity: 5, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 7, loyalty: 9, singleOwner: 5
+            immunity: 5, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 7, loyalty: 9, singleOwner: 5,
+            imageUrl: wiki("CavalierKingCharlesSpaniel_blenheim.jpg")
         ),
         DogBreed(
             name: "Akita",
@@ -227,7 +260,8 @@ enum BreedDatabase {
             origin: "Japan", group: "Working", emoji: "🐺", accentHex: "#C2410C",
             dogCeoBreedKey: "akita",
             size: 9, energyLevel: 6, shedding: 8, guardedness: 9, aggressiveness: 6,
-            immunity: 8, lifespan: 7, groomingNeeds: 6, vetVisitsRequired: 4, loyalty: 10, singleOwner: 9
+            immunity: 8, lifespan: 7, groomingNeeds: 6, vetVisitsRequired: 4, loyalty: 10, singleOwner: 9,
+            imageUrl: wiki("Akita_inu_brindle.jpg")
         ),
         DogBreed(
             name: "Shiba Inu",
@@ -235,7 +269,8 @@ enum BreedDatabase {
             origin: "Japan", group: "Non-Sporting", emoji: "🦊", accentHex: "#EA580C",
             dogCeoBreedKey: "shiba",
             size: 4, energyLevel: 7, shedding: 7, guardedness: 7, aggressiveness: 5,
-            immunity: 9, lifespan: 8, groomingNeeds: 4, vetVisitsRequired: 3, loyalty: 7, singleOwner: 8
+            immunity: 9, lifespan: 8, groomingNeeds: 4, vetVisitsRequired: 3, loyalty: 7, singleOwner: 8,
+            imageUrl: wiki("Shiba_inu_taiki.jpg")
         ),
         DogBreed(
             name: "Irish Setter",
@@ -243,7 +278,8 @@ enum BreedDatabase {
             origin: "Ireland", group: "Sporting", emoji: "🐕", accentHex: "#B91C1C",
             dogCeoBreedKey: "setter/irish",
             size: 8, energyLevel: 9, shedding: 5, guardedness: 3, aggressiveness: 2,
-            immunity: 8, lifespan: 8, groomingNeeds: 6, vetVisitsRequired: 4, loyalty: 8, singleOwner: 4
+            immunity: 8, lifespan: 8, groomingNeeds: 6, vetVisitsRequired: 4, loyalty: 8, singleOwner: 4,
+            imageUrl: wiki("Irish_Red_Setter.jpg")
         ),
     ]
 
@@ -272,7 +308,8 @@ enum BreedDatabase {
             let d10: Double = abs(breed.singleOwner      - singleOwner)
             let distance: Double = d0 + d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9 + d10
             b.matchScore = max(0.0, min(1.0, 1.0 - distance / 110.0))
-            b.imageUrl = nil   // reset so placeholder shows while image loads
+            // Keep static imageUrl so a photo shows immediately; DogImageService
+            // will replace it with a fresh API image after fetchImages() runs.
             return b
         }
         ranked.sort { $0.matchScore > $1.matchScore }

@@ -21,7 +21,7 @@ struct TraitBarRow: View {
                     Capsule()
                         .fill(
                             LinearGradient(
-                                colors: [Color.appSecondary, Color.appPrimary],
+                                colors: [Color.appSecondary, Color.appPrimary, Color.appTertiary],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

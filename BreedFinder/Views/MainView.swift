@@ -166,7 +166,7 @@ struct MainView: View {
         } label: {
             ZStack {
                 LinearGradient(
-                    colors: [Color(hex: "#F4A853"), Color(hex: "#E8892B"), Color(hex: "#C4701A")],
+                    colors: [Color(hex: "#5B9AFF"), Color(hex: "#1D6EF5"), Color(hex: "#1249B8")],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -190,7 +190,7 @@ struct MainView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: Color(hex: "#E8892B").opacity(0.38), radius: 14, x: 0, y: 4)
+            .shadow(color: Color(hex: "#1D6EF5").opacity(0.35), radius: 14, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .disabled(vm.isLoading)

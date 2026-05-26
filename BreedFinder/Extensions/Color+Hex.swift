@@ -27,22 +27,22 @@ extension Color {
     }
 }
 
-// MARK: - App colour palette
+// MARK: - App colour palette  (blue theme)
 extension Color {
-    /// Warm amber — primary brand colour
-    static let appPrimary      = Color(hex: "#E8892B")
-    /// Lighter amber
-    static let appSecondary    = Color(hex: "#F4A853")
-    /// Deep amber-brown
-    static let appTertiary     = Color(hex: "#9B5523")
-    /// Warm cream page background
-    static let appBackground   = Color(hex: "#FFF8EF")
-    /// Very dark brown text
-    static let appTextPrimary  = Color(hex: "#3D1F08")
-    /// Medium warm-brown secondary text
-    static let appTextSecondary = Color(hex: "#96705A")
-    /// Light peach border / track
-    static let appBorder       = Color(hex: "#F0D9C3")
-    /// Very light peach tag background
-    static let appTagBackground = Color(hex: "#FFF1E0")
+    /// Vivid royal blue — primary brand colour
+    static let appPrimary       = Color(hex: "#1D6EF5")
+    /// Lighter cornflower blue
+    static let appSecondary     = Color(hex: "#5B9AFF")
+    /// Deep navy blue
+    static let appTertiary      = Color(hex: "#1249B8")
+    /// Very light blue-white page background
+    static let appBackground    = Color(hex: "#F0F5FF")
+    /// Deep navy text
+    static let appTextPrimary   = Color(hex: "#0D1B3E")
+    /// Muted blue-grey secondary text
+    static let appTextSecondary = Color(hex: "#5B7DA6")
+    /// Soft blue border / track
+    static let appBorder        = Color(hex: "#B8D4FA")
+    /// Pale blue tag background
+    static let appTagBackground = Color(hex: "#DDE9FF")
 }

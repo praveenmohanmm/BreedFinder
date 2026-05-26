@@ -1,13 +1,25 @@
 import SwiftUI
 
-// MARK: - Labelled trait slider row
+// MARK: - Trait segmented-level row (5 steps: 1 → 3 → 5 → 7 → 9)
+/// Drop-in replacement for the old slider. Same external API (traitName / value / valueLabel)
+/// so MainView.swift needs zero changes.
 struct TraitSliderRow: View {
-    let traitName: String
-    @Binding var value: Double
-    let valueLabel: String
+    let traitName:  String
+    @Binding var value: Double   // 0–10, snaps to 1 / 3 / 5 / 7 / 9
+    let valueLabel: String       // semantic label for the current selection
+
+    // Snap-point values for the five segments
+    private static let snaps: [Double] = [1, 3, 5, 7, 9]
+
+    /// Segment index for the current value (0–4)
+    private var segIndex: Int {
+        let idx = Int(round((max(0, min(10, value)) - 1.0) / 2.0))
+        return max(0, min(4, idx))
+    }
 
     var body: some View {
-        VStack(spacing: 3) {
+        VStack(spacing: 5) {
+            // ── Label row ────────────────────────────────────────────────
             HStack {
                 Text(traitName)
                     .font(.caption)
@@ -16,11 +28,43 @@ struct TraitSliderRow: View {
                 Text(valueLabel)
                     .font(.caption.bold())
                     .foregroundStyle(Color.appPrimary)
-                    .frame(minWidth: 90, alignment: .trailing)
                     .lineLimit(1)
+                    .animation(.none, value: valueLabel)
             }
-            Slider(value: $value, in: 0 ... 10)
-                .tint(Color.appPrimary)
+
+            // ── 5-segment control ────────────────────────────────────────
+            HStack(spacing: 4) {
+                ForEach(0..<5, id: \.self) { idx in
+                    let selected = idx == segIndex
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.14)) {
+                            value = TraitSliderRow.snaps[idx]
+                        }
+                    } label: {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(selected
+                                      ? Color.appPrimary
+                                      : Color.appTagBackground)
+
+                            // Ascending-bar icon — visually encodes the level
+                            VStack(spacing: 0) {
+                                Spacer(minLength: 0)
+                                RoundedRectangle(cornerRadius: 1.5)
+                                    .fill(selected
+                                          ? Color.white
+                                          : Color.appPrimary.opacity(0.45))
+                                    // heights: 4, 7, 10, 13, 16 pt
+                                    .frame(height: CGFloat(4 + idx * 3))
+                            }
+                            .padding(.vertical, 7)
+                            .padding(.horizontal, 6)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .padding(.bottom, 6)
     }

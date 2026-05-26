@@ -27,6 +27,11 @@ jobs:
             -project BreedFinder.xcodeproj \
             -scheme BreedFinder
 
+      - name: Generate app icon
+        run: |
+          swift ci/generate_icon.swift \
+            "BreedFinder/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png"
+
       - name: Build (iPhone simulator)
         run: |
           xcodebuild build \

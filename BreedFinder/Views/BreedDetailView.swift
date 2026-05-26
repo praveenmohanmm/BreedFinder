@@ -45,8 +45,8 @@ struct BreedDetailView: View {
             LinearGradient(
                 stops: [
                     .init(color: .clear, location: 0),
-                    .init(color: Color(hex: "#CC3D1F08"), location: 0.55),
-                    .init(color: Color(hex: "#E03D1F08"), location: 1.0),
+                    .init(color: Color(hex: "#CC0D1B3E"), location: 0.55),
+                    .init(color: Color(hex: "#E60D1B3E"), location: 1.0),
                 ],
                 startPoint: .top,
                 endPoint: .bottom

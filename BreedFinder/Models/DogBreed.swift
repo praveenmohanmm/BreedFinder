@@ -71,7 +71,8 @@ struct DogBreed: Identifiable, Equatable {
         size: Double, energyLevel: Double, shedding: Double,
         guardedness: Double, aggressiveness: Double, immunity: Double,
         lifespan: Double, groomingNeeds: Double, vetVisitsRequired: Double,
-        loyalty: Double, singleOwner: Double
+        loyalty: Double, singleOwner: Double,
+        imageUrl: String? = nil   // optional pre-loaded static image URL
     ) {
         self.id = UUID()
         self.name = name; self.description = description
@@ -84,5 +85,6 @@ struct DogBreed: Identifiable, Equatable {
         self.lifespan = lifespan; self.groomingNeeds = groomingNeeds
         self.vetVisitsRequired = vetVisitsRequired
         self.loyalty = loyalty; self.singleOwner = singleOwner
+        self.imageUrl = imageUrl
     }
 }

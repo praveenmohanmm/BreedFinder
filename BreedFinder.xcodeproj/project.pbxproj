@@ -20,6 +20,7 @@
 		A2A2A2A2A2A2A2A2A2A2000B /* FilterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000B; };
 		A2A2A2A2A2A2A2A2A2A2000C /* TraitBarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000C; };
 		A2A2A2A2A2A2A2A2A2A2000D /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000D; };
+		A2A2A2A2A2A2A2A2A2A20010 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A10011; };
 		A2A2A2A2A2A2A2A2A2A2000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000E; };
 		A2A2A2A2A2A2A2A2A2A2000F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000F; };
 /* End PBXBuildFile section */
@@ -38,6 +39,7 @@
 		A1A1A1A1A1A1A1A1A1A1000B /* FilterSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSection.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000C /* TraitBarRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraitBarRow.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000D /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A10011 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A10010 /* BreedFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreedFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +133,7 @@
 			children = (
 				A1A1A1A1A1A1A1A1A1A10007 /* MainView.swift */,
 				A1A1A1A1A1A1A1A1A1A10008 /* BreedDetailView.swift */,
+				A1A1A1A1A1A1A1A1A1A10011 /* SplashView.swift */,
 				A3A3A3A3A3A3A3A3A3A3000A /* Components */,
 			);
 			path = Views;
@@ -239,6 +242,7 @@
 				A2A2A2A2A2A2A2A2A2A2000B /* FilterSection.swift in Sources */,
 				A2A2A2A2A2A2A2A2A2A2000C /* TraitBarRow.swift in Sources */,
 				A2A2A2A2A2A2A2A2A2A2000D /* FlowLayout.swift in Sources */,
+				A2A2A2A2A2A2A2A2A2A20010 /* SplashView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,6 +380,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_UIColorName = LaunchBackground;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -404,6 +409,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_UIColorName = LaunchBackground;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
