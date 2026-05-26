@@ -3,13 +3,9 @@ import Foundation
 // MARK: - Breed database + matching logic
 enum BreedDatabase {
 
-    // Wikimedia Commons stable-redirect base.  Special:FilePath redirects to
-    // the actual CDN image — no MD5 path needed, always resolvable.
-    private static func wiki(_ filename: String) -> String {
-        "https://commons.wikimedia.org/wiki/Special:FilePath/\(filename)?width=400"
-    }
-
     // MARK: All breeds
+    // imageUrl values are stable dog.ceo CDN paths — verified working 2025-05.
+    // dogCeoBreedKey is the dog.ceo API path used by DogImageService for refresh.
     static let all: [DogBreed] = [
         DogBreed(
             name: "Labrador Retriever",
@@ -18,16 +14,16 @@ enum BreedDatabase {
             dogCeoBreedKey: "labrador",
             size: 7, energyLevel: 8, shedding: 7, guardedness: 5, aggressiveness: 2,
             immunity: 8, lifespan: 7, groomingNeeds: 3, vetVisitsRequired: 5, loyalty: 9, singleOwner: 4,
-            imageUrl: wiki("Labrador_Retriever_gelb.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/labrador/n02099712_7411.jpg"
         ),
         DogBreed(
             name: "German Shepherd",
             description: "Highly intelligent and versatile working dog. German Shepherds excel in police, military, and service roles. They are deeply loyal to their family and naturally protective.",
             origin: "Germany", group: "Herding", emoji: "🐺", accentHex: "#92400E",
-            dogCeoBreedKey: "germanshepherd",
+            dogCeoBreedKey: "german/shepherd",
             size: 8, energyLevel: 8, shedding: 9, guardedness: 9, aggressiveness: 5,
             immunity: 7, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 5, loyalty: 9, singleOwner: 7,
-            imageUrl: wiki("German_Shepherd_Dog.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/german-shepherd/n02106662_18405.jpg"
         ),
         DogBreed(
             name: "Golden Retriever",
@@ -36,7 +32,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "retriever/golden",
             size: 7, energyLevel: 7, shedding: 8, guardedness: 4, aggressiveness: 1,
             immunity: 7, lifespan: 7, groomingNeeds: 6, vetVisitsRequired: 5, loyalty: 9, singleOwner: 3,
-            imageUrl: wiki("Golden_Retriever_Dukedestiny01_drvd.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/retriever-golden/n02099601_8429.jpg"
         ),
         DogBreed(
             name: "Poodle (Standard)",
@@ -45,7 +41,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "poodle/standard",
             size: 6, energyLevel: 7, shedding: 1, guardedness: 5, aggressiveness: 2,
             immunity: 8, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 4, loyalty: 8, singleOwner: 5,
-            imageUrl: wiki("Caniche_Abricot.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/poodle-standard/n02113799_6045.jpg"
         ),
         DogBreed(
             name: "Chihuahua",
@@ -54,7 +50,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "chihuahua",
             size: 1, energyLevel: 6, shedding: 3, guardedness: 7, aggressiveness: 7,
             immunity: 6, lifespan: 10, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 9, singleOwner: 9,
-            imageUrl: wiki("Chi-chihuahua.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/chihuahua/n02085620_2815.jpg"
         ),
         DogBreed(
             name: "French Bulldog",
@@ -63,7 +59,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "bulldog/french",
             size: 3, energyLevel: 4, shedding: 4, guardedness: 4, aggressiveness: 3,
             immunity: 4, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 8, loyalty: 8, singleOwner: 6,
-            imageUrl: wiki("French_Bulldog_Bentley.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/bulldog-french/n02108915_3880.jpg"
         ),
         DogBreed(
             name: "Bulldog",
@@ -72,7 +68,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "bulldog/english",
             size: 5, energyLevel: 2, shedding: 5, guardedness: 5, aggressiveness: 3,
             immunity: 4, lifespan: 5, groomingNeeds: 2, vetVisitsRequired: 7, loyalty: 7, singleOwner: 5,
-            imageUrl: wiki("Bulldog_inglese.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/bulldog-english/jager-2.jpg"
         ),
         DogBreed(
             name: "Beagle",
@@ -81,7 +77,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "beagle",
             size: 4, energyLevel: 7, shedding: 5, guardedness: 4, aggressiveness: 2,
             immunity: 8, lifespan: 8, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 7, singleOwner: 3,
-            imageUrl: wiki("Beagle_Gidget.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/beagle/n02088364_11130.jpg"
         ),
         DogBreed(
             name: "Rottweiler",
@@ -90,16 +86,16 @@ enum BreedDatabase {
             dogCeoBreedKey: "rottweiler",
             size: 9, energyLevel: 6, shedding: 5, guardedness: 9, aggressiveness: 6,
             immunity: 7, lifespan: 6, groomingNeeds: 3, vetVisitsRequired: 5, loyalty: 9, singleOwner: 8,
-            imageUrl: wiki("Rottweiler.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/rottweiler/n02106550_4987.jpg"
         ),
         DogBreed(
             name: "Yorkshire Terrier",
             description: "Tiny but tenacious — Yorkies are spunky, affectionate, and surprisingly bold. Their silky hypoallergenic coat is beautiful but needs regular maintenance.",
             origin: "England", group: "Toy", emoji: "🐾", accentHex: "#A78BFA",
-            dogCeoBreedKey: "yorkshire",
+            dogCeoBreedKey: "terrier/yorkshire",
             size: 1, energyLevel: 6, shedding: 1, guardedness: 6, aggressiveness: 5,
             immunity: 6, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 5, loyalty: 8, singleOwner: 7,
-            imageUrl: wiki("YorkshireTerrier.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/terrier-yorkshire/n02094433_3198.jpg"
         ),
         DogBreed(
             name: "Siberian Husky",
@@ -108,7 +104,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "husky",
             size: 7, energyLevel: 10, shedding: 10, guardedness: 3, aggressiveness: 3,
             immunity: 9, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 3, loyalty: 7, singleOwner: 4,
-            imageUrl: wiki("Siberian-husky.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/husky/n02110185_1532.jpg"
         ),
         DogBreed(
             name: "Pomeranian",
@@ -117,7 +113,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "pomeranian",
             size: 1, energyLevel: 7, shedding: 6, guardedness: 6, aggressiveness: 4,
             immunity: 7, lifespan: 9, groomingNeeds: 8, vetVisitsRequired: 4, loyalty: 8, singleOwner: 7,
-            imageUrl: wiki("Pomeranian_orange_sable.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/pomeranian/n02112018_4035.jpg"
         ),
         DogBreed(
             name: "Border Collie",
@@ -126,7 +122,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "collie/border",
             size: 5, energyLevel: 10, shedding: 6, guardedness: 5, aggressiveness: 3,
             immunity: 9, lifespan: 8, groomingNeeds: 5, vetVisitsRequired: 3, loyalty: 9, singleOwner: 6,
-            imageUrl: wiki("Border_Collie_600.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/collie-border/n02106166_1429.jpg"
         ),
         DogBreed(
             name: "Shih Tzu",
@@ -135,7 +131,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "shihtzu",
             size: 2, energyLevel: 4, shedding: 1, guardedness: 4, aggressiveness: 3,
             immunity: 6, lifespan: 9, groomingNeeds: 10, vetVisitsRequired: 5, loyalty: 8, singleOwner: 6,
-            imageUrl: wiki("Shih_Tzu_-_Shirubii.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/shihtzu/n02086240_5546.jpg"
         ),
         DogBreed(
             name: "Great Dane",
@@ -144,7 +140,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "dane/great",
             size: 10, energyLevel: 5, shedding: 5, guardedness: 7, aggressiveness: 3,
             immunity: 5, lifespan: 4, groomingNeeds: 2, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5,
-            imageUrl: wiki("Dogge_Hannelore.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/dane-great/n02109047_34175.jpg"
         ),
         DogBreed(
             name: "Australian Shepherd",
@@ -153,7 +149,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "australian/shepherd",
             size: 6, energyLevel: 10, shedding: 7, guardedness: 6, aggressiveness: 3,
             immunity: 9, lifespan: 8, groomingNeeds: 6, vetVisitsRequired: 3, loyalty: 9, singleOwner: 5,
-            imageUrl: wiki("Australian_Shepherd_600.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/australian-shepherd/sadie.jpg"
         ),
         DogBreed(
             name: "Maltese",
@@ -162,7 +158,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "maltese",
             size: 1, energyLevel: 5, shedding: 1, guardedness: 4, aggressiveness: 3,
             immunity: 6, lifespan: 9, groomingNeeds: 9, vetVisitsRequired: 5, loyalty: 9, singleOwner: 7,
-            imageUrl: wiki("Maltese-dog.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/maltese/n02085936_37.jpg"
         ),
         DogBreed(
             name: "Doberman Pinscher",
@@ -171,7 +167,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "doberman",
             size: 8, energyLevel: 8, shedding: 3, guardedness: 10, aggressiveness: 5,
             immunity: 7, lifespan: 7, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 10, singleOwner: 8,
-            imageUrl: wiki("Dobermann_handling.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/doberman/n02107142_2213.jpg"
         ),
         DogBreed(
             name: "Dachshund",
@@ -180,7 +176,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "dachshund",
             size: 2, energyLevel: 5, shedding: 4, guardedness: 6, aggressiveness: 5,
             immunity: 7, lifespan: 8, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 8, singleOwner: 6,
-            imageUrl: wiki("Dachshund_male_Flickr.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/dachshund/reese.jpg"
         ),
         DogBreed(
             name: "Pug",
@@ -189,7 +185,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "pug",
             size: 3, energyLevel: 4, shedding: 7, guardedness: 3, aggressiveness: 2,
             immunity: 5, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 7, loyalty: 8, singleOwner: 6,
-            imageUrl: wiki("Pug_dog.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/pug/n02110958_13995.jpg"
         ),
         DogBreed(
             name: "Boxer",
@@ -198,7 +194,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "boxer",
             size: 7, energyLevel: 8, shedding: 4, guardedness: 7, aggressiveness: 4,
             immunity: 7, lifespan: 6, groomingNeeds: 2, vetVisitsRequired: 5, loyalty: 9, singleOwner: 6,
-            imageUrl: wiki("Boxer_female_3yo.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/boxer/n02108089_5977.jpg"
         ),
         DogBreed(
             name: "Saint Bernard",
@@ -207,16 +203,16 @@ enum BreedDatabase {
             dogCeoBreedKey: "stbernard",
             size: 10, energyLevel: 4, shedding: 8, guardedness: 5, aggressiveness: 2,
             immunity: 7, lifespan: 5, groomingNeeds: 7, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5,
-            imageUrl: wiki("Saint_Bernard_dog.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/stbernard/n02109525_13420.jpg"
         ),
         DogBreed(
             name: "Jack Russell Terrier",
             description: "Fearless, energetic, and clever. Jack Russells are full of personality and need plenty of stimulation. Best for experienced owners who enjoy an active lifestyle.",
             origin: "England", group: "Terrier", emoji: "🐕", accentHex: "#065F46",
-            dogCeoBreedKey: "terrier/jack",
+            dogCeoBreedKey: "terrier/russell",
             size: 2, energyLevel: 10, shedding: 4, guardedness: 6, aggressiveness: 6,
             immunity: 9, lifespan: 9, groomingNeeds: 2, vetVisitsRequired: 3, loyalty: 7, singleOwner: 6,
-            imageUrl: wiki("Jack_Russell_Terrier.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/terrier-russell/IMG_7489.jpg"
         ),
         DogBreed(
             name: "Cocker Spaniel",
@@ -225,7 +221,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "spaniel/cocker",
             size: 4, energyLevel: 6, shedding: 5, guardedness: 4, aggressiveness: 2,
             immunity: 7, lifespan: 8, groomingNeeds: 8, vetVisitsRequired: 6, loyalty: 8, singleOwner: 5,
-            imageUrl: wiki("AmericanCockerSpaniel_wb.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/spaniel-cocker/n02102318_10000.jpg"
         ),
         DogBreed(
             name: "Weimaraner",
@@ -234,7 +230,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "weimaraner",
             size: 8, energyLevel: 9, shedding: 4, guardedness: 7, aggressiveness: 4,
             immunity: 8, lifespan: 7, groomingNeeds: 2, vetVisitsRequired: 4, loyalty: 9, singleOwner: 7,
-            imageUrl: wiki("Weimaraner.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/weimaraner/n02092339_6543.jpg"
         ),
         DogBreed(
             name: "Miniature Schnauzer",
@@ -243,16 +239,16 @@ enum BreedDatabase {
             dogCeoBreedKey: "schnauzer/miniature",
             size: 2, energyLevel: 7, shedding: 1, guardedness: 7, aggressiveness: 4,
             immunity: 8, lifespan: 9, groomingNeeds: 7, vetVisitsRequired: 4, loyalty: 8, singleOwner: 6,
-            imageUrl: wiki("Miniature_Schnauzer.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/schnauzer-miniature/n02097047_1556.jpg"
         ),
         DogBreed(
             name: "Cavalier King Charles Spaniel",
             description: "Grace, gentleness, and charm define the Cavalier. They are supremely adaptable — equally happy in a flat or a country estate — and love snuggling.",
             origin: "England", group: "Toy", emoji: "🐾", accentHex: "#C2410C",
-            dogCeoBreedKey: "spaniel/cavalier",
+            dogCeoBreedKey: "spaniel/blenheim",
             size: 3, energyLevel: 5, shedding: 5, guardedness: 3, aggressiveness: 1,
             immunity: 5, lifespan: 7, groomingNeeds: 5, vetVisitsRequired: 7, loyalty: 9, singleOwner: 5,
-            imageUrl: wiki("CavalierKingCharlesSpaniel_blenheim.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/spaniel-blenheim/n02086646_593.jpg"
         ),
         DogBreed(
             name: "Akita",
@@ -261,7 +257,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "akita",
             size: 9, energyLevel: 6, shedding: 8, guardedness: 9, aggressiveness: 6,
             immunity: 8, lifespan: 7, groomingNeeds: 6, vetVisitsRequired: 4, loyalty: 10, singleOwner: 9,
-            imageUrl: wiki("Akita_inu_brindle.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/akita/Akita_inu_blanc.jpg"
         ),
         DogBreed(
             name: "Shiba Inu",
@@ -270,7 +266,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "shiba",
             size: 4, energyLevel: 7, shedding: 7, guardedness: 7, aggressiveness: 5,
             immunity: 9, lifespan: 8, groomingNeeds: 4, vetVisitsRequired: 3, loyalty: 7, singleOwner: 8,
-            imageUrl: wiki("Shiba_inu_taiki.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/shiba/shiba-12.jpg"
         ),
         DogBreed(
             name: "Irish Setter",
@@ -279,7 +275,7 @@ enum BreedDatabase {
             dogCeoBreedKey: "setter/irish",
             size: 8, energyLevel: 9, shedding: 5, guardedness: 3, aggressiveness: 2,
             immunity: 8, lifespan: 8, groomingNeeds: 6, vetVisitsRequired: 4, loyalty: 8, singleOwner: 4,
-            imageUrl: wiki("Irish_Red_Setter.jpg")
+            imageUrl: "https://images.dog.ceo/breeds/setter-irish/n02100877_6852.jpg"
         ),
     ]
 
@@ -295,21 +291,19 @@ enum BreedDatabase {
             var b = breed
             // Explicit Double annotation avoids WMO type-checker timeout on the
             // long + chain (Swift SR-11524 / "unable to type-check in reasonable time").
-            let d0: Double = abs(breed.size              - size)
-            let d1: Double = abs(breed.energyLevel       - energy)
-            let d2: Double = abs(breed.shedding          - shedding)
-            let d3: Double = abs(breed.guardedness       - guardedness)
-            let d4: Double = abs(breed.aggressiveness    - aggressiveness)
-            let d5: Double = abs(breed.immunity          - immunity)
-            let d6: Double = abs(breed.lifespan          - lifespan)
-            let d7: Double = abs(breed.groomingNeeds     - grooming)
-            let d8: Double = abs(breed.vetVisitsRequired - vetVisits)
-            let d9: Double = abs(breed.loyalty           - loyalty)
-            let d10: Double = abs(breed.singleOwner      - singleOwner)
+            let d0: Double  = abs(breed.size              - size)
+            let d1: Double  = abs(breed.energyLevel       - energy)
+            let d2: Double  = abs(breed.shedding          - shedding)
+            let d3: Double  = abs(breed.guardedness       - guardedness)
+            let d4: Double  = abs(breed.aggressiveness    - aggressiveness)
+            let d5: Double  = abs(breed.immunity          - immunity)
+            let d6: Double  = abs(breed.lifespan          - lifespan)
+            let d7: Double  = abs(breed.groomingNeeds     - grooming)
+            let d8: Double  = abs(breed.vetVisitsRequired - vetVisits)
+            let d9: Double  = abs(breed.loyalty           - loyalty)
+            let d10: Double = abs(breed.singleOwner       - singleOwner)
             let distance: Double = d0 + d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9 + d10
             b.matchScore = max(0.0, min(1.0, 1.0 - distance / 110.0))
-            // Keep static imageUrl so a photo shows immediately; DogImageService
-            // will replace it with a fresh API image after fetchImages() runs.
             return b
         }
         ranked.sort { $0.matchScore > $1.matchScore }
