@@ -1,25 +1,23 @@
 name: iOS Signed Release
 
 # Triggers:
-#   • Automatically when a GitHub Release is published
-#   • Manually via workflow_dispatch (specify the tag to attach assets to)
+#   • Automatically whenever a v* tag is pushed  →  git tag v2.1.5 && git push origin v2.1.5
+#   • Manually via workflow_dispatch (useful for re-running a failed build)
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to attach assets to (e.g. v2.1.0)'
+        description: 'Tag to build and publish (e.g. v2.1.5)'
         required: true
-        default: 'v2.1.0'
+        default: 'v2.1.5'
 
 # Required secrets (Settings → Secrets and variables → Actions):
-#   APPLE_CERTIFICATE_BASE64    — Distribution .p12 as base64
+#   APPLE_CERTIFICATE_BASE64    — Development .p12 as base64
 #   APPLE_CERTIFICATE_PASSWORD  — Password used when exporting the .p12
-#   APPLE_PROVISIONING_PROFILE  — Ad-Hoc .mobileprovision as base64
-#
-#   No APPLE_TEAM_ID needed — extracted from the provisioning profile at runtime.
-#   No KEYCHAIN_PASSWORD needed — generated fresh (openssl rand) each run.
+#   APPLE_PROVISIONING_PROFILE  — Development .mobileprovision as base64
 
 env:
   XCODE_PROJECT: BreedFinder.xcodeproj
@@ -29,31 +27,42 @@ env:
 
 jobs:
   signed-ipa:
-    name: Build · Sign · OTA · Upload
+    name: Build · Sign · OTA · Release
     runs-on: macos-latest
     permissions:
-      contents: write   # required to upload assets to a GitHub Release
+      contents: write   # required to create/upload GitHub Release assets
 
     steps:
       # ── 1. Source ─────────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── 2. Xcode ──────────────────────────────────────────────────────────────
+      # ── 2. Resolve release tag ────────────────────────────────────────────────
+      #   Tag-push:          GITHUB_REF = refs/tags/v2.1.5  →  ref_name = v2.1.5
+      #   workflow_dispatch: use the manual input instead
+      - name: Resolve release tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            RELEASE_TAG="${GITHUB_REF#refs/tags/}"
+          else
+            RELEASE_TAG="${{ github.event.inputs.tag }}"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          echo "Building: $RELEASE_TAG"
+
+      # ── 3. Xcode ──────────────────────────────────────────────────────────────
       - name: Select Xcode
         run: |
-          # Use the default stable Xcode (same path ios-build.yml uses).
-          # Do NOT sort by version number — that can pick a pre-installed beta.
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
 
-      # ── 2.5. App icon ─────────────────────────────────────────────────────────
+      # ── 4. App icon ───────────────────────────────────────────────────────────
       - name: Generate app icon
         run: |
           swift ci/generate_icon.swift \
             "BreedFinder/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png"
 
-      # ── 3. Certificate → temp keychain ────────────────────────────────────────
+      # ── 5. Certificate → temp keychain ────────────────────────────────────────
       - name: Import signing certificate
         env:
           P12_BASE64:   ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -77,7 +86,7 @@ jobs:
           echo "Installed identities:"
           security find-identity -v -p codesigning "$KC"
 
-      # ── 4. Provisioning profile ────────────────────────────────────────────────
+      # ── 6. Provisioning profile ────────────────────────────────────────────────
       - name: Install provisioning profile
         env:
           PP_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
@@ -100,7 +109,7 @@ jobs:
           echo "PP_UUID=$PP_UUID" >> "$GITHUB_ENV"
           echo "TEAM_ID=$TEAM_ID" >> "$GITHUB_ENV"
 
-      # ── 5. Archive ─────────────────────────────────────────────────────────────
+      # ── 7. Archive ─────────────────────────────────────────────────────────────
       - name: xcodebuild archive
         run: |
           ARCHIVE="$RUNNER_TEMP/BreedFinder.xcarchive"
@@ -118,8 +127,6 @@ jobs:
             PROVISIONING_PROFILE="$PP_UUID" \
             SWIFT_STRICT_CONCURRENCY=minimal \
             2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
-          # Fail explicitly if the archive was not created (pipefail won't catch
-          # tee masking the exit code on some runners)
           test -d "$ARCHIVE" || {
             echo "::error::Archive not created — last 50 lines of build log:"
             tail -50 "$RUNNER_TEMP/xcodebuild.log"
@@ -127,15 +134,12 @@ jobs:
           }
           echo "Archive size: $(du -sh "$ARCHIVE" | cut -f1)"
 
-      # ── 6. ExportOptions.plist ─────────────────────────────────────────────────
+      # ── 8. ExportOptions.plist ─────────────────────────────────────────────────
       - name: Generate ExportOptions.plist
         run: |
           EXPORT_OPTS="$RUNNER_TEMP/ExportOptions.plist"
           python3 - <<PYEOF
           import os
-          # method=development works with a Development certificate + Development
-          # provisioning profile (the most common non-enterprise setup).
-          # Switch to ad-hoc if you have a Distribution cert + Ad Hoc profile.
           content = """<?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
             "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -164,7 +168,7 @@ jobs:
         env:
           EXPORT_OPTS: ${{ runner.temp }}/ExportOptions.plist
 
-      # ── 7. Export IPA ──────────────────────────────────────────────────────────
+      # ── 9. Export IPA ──────────────────────────────────────────────────────────
       - name: xcodebuild exportArchive
         run: |
           EXPORT_PATH="$RUNNER_TEMP/IPA"
@@ -179,14 +183,13 @@ jobs:
             tail -30 "$RUNNER_TEMP/export.log"
             exit 1
           }
-          echo "IPA_PATH=$IPA"             >> "$GITHUB_ENV"
+          echo "IPA_PATH=$IPA"               >> "$GITHUB_ENV"
           echo "IPA_NAME=$(basename "$IPA")" >> "$GITHUB_ENV"
           echo "IPA size: $(du -sh "$IPA" | cut -f1)"
 
-      # ── 8. Generate manifest.plist + install.html from repo templates ──────────
+      # ── 10. Generate manifest.plist + install.html ─────────────────────────────
       - name: Generate OTA files
         run: |
-          RELEASE_TAG="${{ github.event.release.tag_name || github.event.inputs.tag }}"
           REPO="${{ github.repository }}"
           BASE="https://github.com/${REPO}/releases/download/${RELEASE_TAG}"
           IPA_URL="${BASE}/${IPA_NAME}"
@@ -197,7 +200,6 @@ jobs:
           echo "Manifest : $MANIFEST_URL"
           echo "Install  : $INSTALL_URL"
 
-          # Use Python string.Template to substitute $VAR placeholders in templates
           RELEASE_TAG="$RELEASE_TAG" REPO="$REPO" \
           IPA_URL="$IPA_URL" MANIFEST_URL="$MANIFEST_URL" INSTALL_URL="$INSTALL_URL" \
           python3 - <<'PYEOF'
@@ -215,15 +217,27 @@ jobs:
 
           echo "MANIFEST_PATH=$RUNNER_TEMP/manifest.plist" >> "$GITHUB_ENV"
           echo "INSTALL_PATH=$RUNNER_TEMP/install.html"    >> "$GITHUB_ENV"
-          echo "RELEASE_TAG=$RELEASE_TAG"                  >> "$GITHUB_ENV"
           echo "INSTALL_URL=$INSTALL_URL"                  >> "$GITHUB_ENV"
 
-      # ── 9. Upload IPA + manifest.plist + install.html to the release ───────────
-      - name: Upload release assets
+      # ── 11. Create GitHub Release + upload IPA / manifest / install.html ───────
+      #   • If the release doesn't exist yet → gh release create makes it
+      #   • If it was already created manually → skip create, upload anyway
+      - name: Publish release and upload assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Uploading to release: $RELEASE_TAG"
+          OTA_NOTES="### 🍎 iOS — Over The Air Install
+          Open **[install.html](${INSTALL_URL})** in **Safari** on your iPhone/iPad and tap Install.
+          > Your device UDID must be registered in the provisioning profile.
+          > After install: **Settings → General → VPN & Device Management** → trust the certificate."
+
+          # Create the release if it doesn't exist yet (ignore error if it does)
+          gh release create "$RELEASE_TAG" \
+            --title "$RELEASE_TAG" \
+            --notes "$OTA_NOTES" \
+            --repo "${{ github.repository }}" 2>/dev/null || true
+
+          # Upload (--clobber replaces files if they were already uploaded)
           gh release upload "$RELEASE_TAG" \
             "$IPA_PATH" \
             "$MANIFEST_PATH" \
@@ -231,20 +245,9 @@ jobs:
             --repo "${{ github.repository }}" \
             --clobber
 
-      # ── 10. Patch release notes with OTA install link ──────────────────────────
-      - name: Update release notes
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          CURRENT=$(gh release view "$RELEASE_TAG" \
-            --repo "${{ github.repository }}" --json body -q .body)
-          OTA="---\n### 🍎 iOS — Over The Air Install\nOpen **[install.html](${INSTALL_URL})** on your iPhone or iPad in **Safari** and tap the install button.\n> Your device UDID must be registered in the provisioning profile.\n> After install: **Settings → General → VPN & Device Management** → trust the certificate."
-          if ! echo "$CURRENT" | grep -q "Over The Air Install"; then
-            printf "%s\n\n%b" "$CURRENT" "$OTA" | \
-              gh release edit "$RELEASE_TAG" --repo "${{ github.repository }}" --notes-file -
-          fi
+          echo "✅ Released: https://github.com/${{ github.repository }}/releases/tag/${RELEASE_TAG}"
 
-      # ── 11. Cleanup keychain ───────────────────────────────────────────────────
+      # ── 12. Cleanup keychain ───────────────────────────────────────────────────
       - name: Remove temp keychain
         if: always()
         run: security delete-keychain "$KC_PATH" 2>/dev/null || true
