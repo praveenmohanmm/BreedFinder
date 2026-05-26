@@ -47,18 +47,11 @@ struct TraitSliderRow: View {
                                       ? Color.appPrimary
                                       : Color.appTagBackground)
 
-                            // Ascending-bar icon — visually encodes the level
-                            VStack(spacing: 0) {
-                                Spacer(minLength: 0)
-                                RoundedRectangle(cornerRadius: 1.5)
-                                    .fill(selected
-                                          ? Color.white
-                                          : Color.appPrimary.opacity(0.45))
-                                    // heights: 4, 7, 10, 13, 16 pt
-                                    .frame(height: CGFloat(4 + idx * 3))
-                            }
-                            .padding(.vertical, 7)
-                            .padding(.horizontal, 6)
+                            Text("\(idx + 1)")
+                                .font(.caption.bold())
+                                .foregroundStyle(selected
+                                                 ? Color.white
+                                                 : Color.appPrimary.opacity(0.6))
                         }
                         .frame(maxWidth: .infinity, minHeight: 36)
                     }
