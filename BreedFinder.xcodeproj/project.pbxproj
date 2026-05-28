@@ -21,6 +21,7 @@
 		A2A2A2A2A2A2A2A2A2A2000C /* TraitBarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000C; };
 		A2A2A2A2A2A2A2A2A2A2000D /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000D; };
 		A2A2A2A2A2A2A2A2A2A20010 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A10011; };
+		A2A2A2A2A2A2A2A2A2A20011 /* TraitPickerRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A10012; };
 		A2A2A2A2A2A2A2A2A2A2000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000E; };
 		A2A2A2A2A2A2A2A2A2A2000F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1000F; };
 /* End PBXBuildFile section */
@@ -40,6 +41,7 @@
 		A1A1A1A1A1A1A1A1A1A1000C /* TraitBarRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraitBarRow.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000D /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A10011 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A10012 /* TraitPickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraitPickerRow.swift; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A1000F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A1A1A1A1A1A1A1A1A1A10010 /* BreedFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreedFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -147,6 +149,7 @@
 				A1A1A1A1A1A1A1A1A1A1000B /* FilterSection.swift */,
 				A1A1A1A1A1A1A1A1A1A1000C /* TraitBarRow.swift */,
 				A1A1A1A1A1A1A1A1A1A1000D /* FlowLayout.swift */,
+				A1A1A1A1A1A1A1A1A1A10012 /* TraitPickerRow.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -243,6 +246,7 @@
 				A2A2A2A2A2A2A2A2A2A2000C /* TraitBarRow.swift in Sources */,
 				A2A2A2A2A2A2A2A2A2A2000D /* FlowLayout.swift in Sources */,
 				A2A2A2A2A2A2A2A2A2A20010 /* SplashView.swift in Sources */,
+				A2A2A2A2A2A2A2A2A2A20011 /* TraitPickerRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
