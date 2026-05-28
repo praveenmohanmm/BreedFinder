@@ -205,6 +205,9 @@ struct BreedDetailView: View {
             VStack(spacing: 8) {
                 content()
             }
+            // frame(maxWidth: .infinity) is required here so GeometryReader
+            // inside TraitBarRow gets the correct available width instead of zero.
+            .frame(maxWidth: .infinity)
             .padding(12)
             .background(Color.appTagBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -213,6 +216,7 @@ struct BreedDetailView: View {
                     .stroke(Color.appBorder, lineWidth: 1)
             )
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

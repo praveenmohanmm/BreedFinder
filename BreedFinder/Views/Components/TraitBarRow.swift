@@ -10,7 +10,7 @@ struct TraitBarRow: View {
             Text(label)
                 .font(.caption)
                 .foregroundStyle(Color.appTextSecondary)
-                .frame(width: 110, alignment: .leading)
+                .frame(width: 120, alignment: .leading)
                 .lineLimit(1)
 
             GeometryReader { geo in
