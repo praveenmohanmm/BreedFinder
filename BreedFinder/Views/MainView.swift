@@ -112,32 +112,52 @@ struct MainView: View {
         @Bindable var vm = vm
 
         VStack(spacing: 10) {
-            FilterSection(icon: "🐾", title: "Size & Build") {
-                TraitSliderRow(traitName: "Size", value: $vm.sizeValue,
-                               valueLabel: vm.sizeLabel)
-            }
-            FilterSection(icon: "🔥", title: "Temperament") {
+            // 1. Living Situation
+            FilterSection(icon: "🏠", title: "Living Situation") {
                 VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Energy Level",   value: $vm.energyLevelValue,    valueLabel: vm.energyLevelLabel)
-                    TraitSliderRow(traitName: "Guardedness",    value: $vm.guardednessValue,     valueLabel: vm.guardednessLabel)
-                    TraitSliderRow(traitName: "Aggressiveness", value: $vm.aggressivenessValue,  valueLabel: vm.aggressivenessLabel)
-                    TraitSliderRow(traitName: "Loyalty",        value: $vm.loyaltyValue,         valueLabel: vm.loyaltyLabel)
-                    TraitSliderRow(traitName: "Single Owner",   value: $vm.singleOwnerValue,     valueLabel: vm.singleOwnerLabel)
+                    TraitSliderRow(traitName: "Dog Size",        value: $vm.sizeValue,        valueLabel: vm.sizeLabel)
+                    TraitSliderRow(traitName: "Energy Level",    value: $vm.energyLevelValue, valueLabel: vm.energyLevelLabel)
+                    TraitSliderRow(traitName: "Alone Tolerance", value: $vm.aloneValue,       valueLabel: vm.aloneLabel)
                 }
             }
+
+            // 2. Family & Social
+            FilterSection(icon: "👨‍👩‍👧", title: "Family & Social") {
+                VStack(spacing: 0) {
+                    TraitSliderRow(traitName: "Good with Kids",  value: $vm.kidsValue,        valueLabel: vm.kidsLabel)
+                    TraitSliderRow(traitName: "Good with Pets",  value: $vm.petsValue,        valueLabel: vm.petsLabel)
+                    TraitSliderRow(traitName: "Single Owner",    value: $vm.singleOwnerValue, valueLabel: vm.singleOwnerLabel)
+                }
+            }
+
+            // 3. Personality
+            FilterSection(icon: "🐶", title: "Personality") {
+                VStack(spacing: 0) {
+                    TraitSliderRow(traitName: "Trainability",    value: $vm.trainabilityValue,   valueLabel: vm.trainabilityLabel)
+                    TraitSliderRow(traitName: "Barking Level",   value: $vm.barkingValue,        valueLabel: vm.barkingLabel)
+                    TraitSliderRow(traitName: "Guardedness",     value: $vm.guardednessValue,    valueLabel: vm.guardednessLabel)
+                    TraitSliderRow(traitName: "Aggressiveness",  value: $vm.aggressivenessValue, valueLabel: vm.aggressivenessLabel)
+                    TraitSliderRow(traitName: "Loyalty",         value: $vm.loyaltyValue,        valueLabel: vm.loyaltyLabel)
+                }
+            }
+
+            // 4. Care & Grooming
             FilterSection(icon: "✂️", title: "Care & Grooming") {
                 VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Shedding",       value: $vm.sheddingValue,       valueLabel: vm.sheddingLabel)
-                    TraitSliderRow(traitName: "Grooming Needs", value: $vm.groomingNeedsValue,  valueLabel: vm.groomingNeedsLabel)
+                    TraitSliderRow(traitName: "Shedding",        value: $vm.sheddingValue,      valueLabel: vm.sheddingLabel)
+                    TraitSliderRow(traitName: "Grooming Needs",  value: $vm.groomingNeedsValue, valueLabel: vm.groomingNeedsLabel)
                 }
             }
-            FilterSection(icon: "🏥", title: "Health & Vitality") {
+
+            // 5. Health & Lifespan
+            FilterSection(icon: "🏥", title: "Health & Lifespan") {
                 VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Immunity",   value: $vm.immunityValue,   valueLabel: vm.immunityLabel)
-                    TraitSliderRow(traitName: "Lifespan",   value: $vm.lifespanValue,   valueLabel: vm.lifespanLabel)
-                    TraitSliderRow(traitName: "Vet Visits", value: $vm.vetVisitsValue,  valueLabel: vm.vetVisitsLabel)
+                    TraitSliderRow(traitName: "Immunity",        value: $vm.immunityValue,  valueLabel: vm.immunityLabel)
+                    TraitSliderRow(traitName: "Lifespan",        value: $vm.lifespanValue,  valueLabel: vm.lifespanLabel)
+                    TraitSliderRow(traitName: "Vet Visits",      value: $vm.vetVisitsValue, valueLabel: vm.vetVisitsLabel)
                 }
             }
+
             Button {
                 withAnimation { vm.resetFilters() }
             } label: {

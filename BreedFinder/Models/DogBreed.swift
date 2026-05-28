@@ -19,7 +19,7 @@ struct DogBreed: Identifiable, Equatable {
     /// Path component(s) for the Dog CEO API, e.g. "retriever/golden"
     let dogCeoBreedKey: String
 
-    // ── Traits (0–10 scale) ───────────────────────────────────────────────────
+    // ── Core traits (0–10 scale) ──────────────────────────────────────────────
     let size: Double
     let energyLevel: Double
     let shedding: Double
@@ -32,6 +32,18 @@ struct DogBreed: Identifiable, Equatable {
     let loyalty: Double
     let singleOwner: Double
 
+    // ── Human-centric traits (0–10 scale) ────────────────────────────────────
+    /// How good with children (10 = perfect family dog)
+    let kidsCompatibility: Double
+    /// How well it gets along with other pets (10 = loves all animals)
+    let petCompatibility: Double
+    /// How well it handles being home alone (10 = very independent)
+    let aloneTolerance: Double
+    /// How much it barks (10 = very vocal)
+    let barkingLevel: Double
+    /// Ease of training (10 = learns in a heartbeat)
+    let trainability: Double
+
     // ── Match-time state (mutated by BreedDatabase.getMatchingBreeds) ─────────
     var matchScore: Double = 0
     var imageUrl: String? = nil
@@ -43,17 +55,19 @@ struct DogBreed: Identifiable, Equatable {
     /// Tags derived purely from trait values — no mutable state needed.
     var tags: [String] {
         var result: [String] = []
-        if aggressiveness <= 3 && energyLevel >= 5 { result.append("Family Friendly") }
-        if guardedness >= 7                         { result.append("Guard Dog") }
-        if energyLevel >= 8                         { result.append("Very Active") }
-        else if energyLevel <= 3                    { result.append("Low Energy") }
-        if shedding <= 2                            { result.append("Hypoallergenic") }
-        if groomingNeeds <= 2 && vetVisitsRequired <= 3 { result.append("Low Maintenance") }
-        if size <= 3                                { result.append("Apartment Friendly") }
-        if aggressiveness <= 2 && immunity >= 7     { result.append("Great for Beginners") }
-        if loyalty >= 9                             { result.append("Highly Loyal") }
-        if singleOwner >= 7                         { result.append("One-Person Dog") }
-        if lifespan >= 9                            { result.append("Long Lifespan") }
+        if kidsCompatibility >= 9                           { result.append("Great with Kids") }
+        if petCompatibility >= 8                            { result.append("Good with Pets") }
+        if trainability >= 9                                { result.append("Easy to Train") }
+        if barkingLevel <= 3                                { result.append("Quiet Dog") }
+        if aloneTolerance >= 7                              { result.append("Can Be Left Alone") }
+        if guardedness >= 7                                 { result.append("Guard Dog") }
+        if energyLevel >= 8                                 { result.append("Very Active") }
+        else if energyLevel <= 3                            { result.append("Low Energy") }
+        if shedding <= 2                                    { result.append("Hypoallergenic") }
+        if groomingNeeds <= 2 && vetVisitsRequired <= 3    { result.append("Low Maintenance") }
+        if size <= 3                                        { result.append("Apartment Friendly") }
+        if loyalty >= 9                                     { result.append("Highly Loyal") }
+        if lifespan >= 9                                    { result.append("Long Lifespan") }
         return result
     }
 
@@ -72,7 +86,9 @@ struct DogBreed: Identifiable, Equatable {
         guardedness: Double, aggressiveness: Double, immunity: Double,
         lifespan: Double, groomingNeeds: Double, vetVisitsRequired: Double,
         loyalty: Double, singleOwner: Double,
-        imageUrl: String? = nil   // optional pre-loaded static image URL
+        kidsCompatibility: Double, petCompatibility: Double,
+        aloneTolerance: Double, barkingLevel: Double, trainability: Double,
+        imageUrl: String? = nil
     ) {
         self.id = UUID()
         self.name = name; self.description = description
@@ -85,6 +101,11 @@ struct DogBreed: Identifiable, Equatable {
         self.lifespan = lifespan; self.groomingNeeds = groomingNeeds
         self.vetVisitsRequired = vetVisitsRequired
         self.loyalty = loyalty; self.singleOwner = singleOwner
+        self.kidsCompatibility = kidsCompatibility
+        self.petCompatibility = petCompatibility
+        self.aloneTolerance = aloneTolerance
+        self.barkingLevel = barkingLevel
+        self.trainability = trainability
         self.imageUrl = imageUrl
     }
 }

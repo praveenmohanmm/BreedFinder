@@ -6,31 +6,49 @@ import Observation
 @MainActor
 final class MainViewModel {
 
-    // ── Sliders (0–10) ────────────────────────────────────────────────────────
+    // ── Sliders (0–10) — Living Situation ─────────────────────────────────────
     var sizeValue:           Double = 5
     var energyLevelValue:    Double = 5
-    var sheddingValue:       Double = 5
-    var guardednessValue:    Double = 5
-    var aggressivenessValue: Double = 5
-    var immunityValue:       Double = 5
-    var lifespanValue:       Double = 5
-    var groomingNeedsValue:  Double = 5
-    var vetVisitsValue:      Double = 5
-    var loyaltyValue:        Double = 5
+    var aloneValue:          Double = 5   // alone tolerance
+
+    // ── Sliders — Family & Social ─────────────────────────────────────────────
+    var kidsValue:           Double = 5   // kids compatibility
+    var petsValue:           Double = 5   // pet compatibility
     var singleOwnerValue:    Double = 5
 
+    // ── Sliders — Personality ─────────────────────────────────────────────────
+    var trainabilityValue:   Double = 5
+    var barkingValue:        Double = 5   // barking level
+    var guardednessValue:    Double = 5
+    var aggressivenessValue: Double = 5
+    var loyaltyValue:        Double = 5
+
+    // ── Sliders — Care & Grooming ─────────────────────────────────────────────
+    var sheddingValue:       Double = 5
+    var groomingNeedsValue:  Double = 5
+
+    // ── Sliders — Health & Lifespan ───────────────────────────────────────────
+    var immunityValue:       Double = 5
+    var lifespanValue:       Double = 5
+    var vetVisitsValue:      Double = 5
+
     // ── Computed slider labels ────────────────────────────────────────────────
-    var sizeLabel:            String { sizeText(sizeValue) }
-    var energyLevelLabel:     String { energyText(energyLevelValue) }
-    var sheddingLabel:        String { sheddingText(sheddingValue) }
-    var guardednessLabel:     String { guardednessText(guardednessValue) }
-    var aggressivenessLabel:  String { aggressivenessText(aggressivenessValue) }
-    var immunityLabel:        String { immunityText(immunityValue) }
-    var lifespanLabel:        String { lifespanText(lifespanValue) }
-    var groomingNeedsLabel:   String { groomingText(groomingNeedsValue) }
-    var vetVisitsLabel:       String { vetVisitsText(vetVisitsValue) }
-    var loyaltyLabel:         String { loyaltyText(loyaltyValue) }
-    var singleOwnerLabel:     String { singleOwnerText(singleOwnerValue) }
+    var sizeLabel:           String { sizeText(sizeValue) }
+    var energyLevelLabel:    String { energyText(energyLevelValue) }
+    var aloneLabel:          String { aloneText(aloneValue) }
+    var kidsLabel:           String { kidsText(kidsValue) }
+    var petsLabel:           String { petsText(petsValue) }
+    var singleOwnerLabel:    String { singleOwnerText(singleOwnerValue) }
+    var trainabilityLabel:   String { trainabilityText(trainabilityValue) }
+    var barkingLabel:        String { barkingText(barkingValue) }
+    var guardednessLabel:    String { guardednessText(guardednessValue) }
+    var aggressivenessLabel: String { aggressivenessText(aggressivenessValue) }
+    var loyaltyLabel:        String { loyaltyText(loyaltyValue) }
+    var sheddingLabel:       String { sheddingText(sheddingValue) }
+    var groomingNeedsLabel:  String { groomingText(groomingNeedsValue) }
+    var immunityLabel:       String { immunityText(immunityValue) }
+    var lifespanLabel:       String { lifespanText(lifespanValue) }
+    var vetVisitsLabel:      String { vetVisitsText(vetVisitsValue) }
 
     // ── Search ────────────────────────────────────────────────────────────────
     var searchText: String = ""
@@ -94,6 +112,9 @@ final class MainViewModel {
             lifespanValue, groomingNeedsValue, vetVisitsValue,
             loyaltyValue, singleOwnerValue
         )
+        let (ki, pe, al, ba, tr) = (
+            kidsValue, petsValue, aloneValue, barkingValue, trainabilityValue
+        )
 
         // Run CPU-bound matching off the main thread
         let results = await Task.detached(priority: .userInitiated) {
@@ -101,7 +122,9 @@ final class MainViewModel {
                 size: s, energy: e, shedding: sh,
                 guardedness: g, aggressiveness: ag, immunity: im,
                 lifespan: li, grooming: gr, vetVisits: v,
-                loyalty: lo, singleOwner: si
+                loyalty: lo, singleOwner: si,
+                kidsCompat: ki, petCompat: pe, aloneToler: al,
+                barking: ba, trainability: tr
             )
         }.value
 
@@ -115,10 +138,12 @@ final class MainViewModel {
     }
 
     func resetFilters() {
-        sizeValue = 5; energyLevelValue = 5; sheddingValue = 5
-        guardednessValue = 5; aggressivenessValue = 5; immunityValue = 5
-        lifespanValue = 5; groomingNeedsValue = 5; vetVisitsValue = 5
-        loyaltyValue = 5; singleOwnerValue = 5
+        sizeValue = 5; energyLevelValue = 5; aloneValue = 5
+        kidsValue = 5; petsValue = 5; singleOwnerValue = 5
+        trainabilityValue = 5; barkingValue = 5
+        guardednessValue = 5; aggressivenessValue = 5; loyaltyValue = 5
+        sheddingValue = 5; groomingNeedsValue = 5
+        immunityValue = 5; lifespanValue = 5; vetVisitsValue = 5
     }
 
     // ── Background image fetching ─────────────────────────────────────────────
@@ -126,7 +151,7 @@ final class MainViewModel {
     private func fetchImages(for breeds: [DogBreed]) {
         let svc = imageService   // capture actor reference (sendable)
         Task.detached(priority: .utility) { [weak self] in
-            // Process in batches of 4 (mirrors the SemaphoreSlim(4,4) in MAUI)
+            // Process in batches of 4
             let chunks = stride(from: 0, to: breeds.count, by: 4).map {
                 Array(breeds[$0..<min($0 + 4, breeds.count)])
             }
@@ -173,6 +198,60 @@ final class MainViewModel {
         case ..<6:  return "Moderate"
         case ..<8:  return "High Energy"
         default:    return "Hyperactive"
+        }
+    }
+    private func aloneText(_ v: Double) -> String {
+        switch v {
+        case ..<2:  return "Never Alone"
+        case ..<4:  return "Needs Company"
+        case ..<6:  return "Short Periods"
+        case ..<8:  return "Independent"
+        default:    return "Very Independent"
+        }
+    }
+    private func kidsText(_ v: Double) -> String {
+        switch v {
+        case ..<2:  return "Not for Kids"
+        case ..<4:  return "Adults Only"
+        case ..<6:  return "Older Kids OK"
+        case ..<8:  return "Good with Kids"
+        default:    return "Great with Kids"
+        }
+    }
+    private func petsText(_ v: Double) -> String {
+        switch v {
+        case ..<2:  return "Needs Solo Home"
+        case ..<4:  return "Selective"
+        case ..<6:  return "Can Adapt"
+        case ..<8:  return "Friendly"
+        default:    return "Loves All Pets"
+        }
+    }
+    private func singleOwnerText(_ v: Double) -> String {
+        switch v {
+        case ..<2:  return "Great with Everyone"
+        case ..<4:  return "Family Dog"
+        case ..<6:  return "Adapts to Family"
+        case ..<8:  return "Prefers One Person"
+        default:    return "One-Person Dog"
+        }
+    }
+    private func trainabilityText(_ v: Double) -> String {
+        switch v {
+        case ..<2:  return "Very Stubborn"
+        case ..<4:  return "Challenging"
+        case ..<6:  return "Average"
+        case ..<8:  return "Quick Learner"
+        default:    return "Exceptionally Easy"
+        }
+    }
+    private func barkingText(_ v: Double) -> String {
+        switch v {
+        case ..<2:  return "Nearly Silent"
+        case ..<4:  return "Quiet"
+        case ..<6:  return "Moderate"
+        case ..<8:  return "Vocal"
+        default:    return "Very Vocal"
         }
     }
     private func sheddingText(_ v: Double) -> String {
@@ -245,15 +324,6 @@ final class MainViewModel {
         case ..<6:  return "Balanced"
         case ..<8:  return "Very Loyal"
         default:    return "Devotedly Loyal"
-        }
-    }
-    private func singleOwnerText(_ v: Double) -> String {
-        switch v {
-        case ..<2:  return "Great with Everyone"
-        case ..<4:  return "Family Dog"
-        case ..<6:  return "Adapts to Family"
-        case ..<8:  return "Prefers One Person"
-        default:    return "One-Person Dog"
         }
     }
 }

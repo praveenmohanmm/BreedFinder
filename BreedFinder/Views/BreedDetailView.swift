@@ -143,20 +143,38 @@ struct BreedDetailView: View {
             divider
 
             // Trait profile
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 sectionHeader("🏅 Trait Profile")
-                VStack(spacing: 10) {
+
+                traitGroup("🏠 Living Situation") {
                     TraitBarRow(label: "Size",              value: breed.size)
                     TraitBarRow(label: "Energy Level",      value: breed.energyLevel)
-                    TraitBarRow(label: "Shedding",          value: breed.shedding)
+                    TraitBarRow(label: "Alone Tolerance",   value: breed.aloneTolerance)
+                }
+
+                traitGroup("👨‍👩‍👧 Family & Social") {
+                    TraitBarRow(label: "Good with Kids",    value: breed.kidsCompatibility)
+                    TraitBarRow(label: "Good with Pets",    value: breed.petCompatibility)
+                    TraitBarRow(label: "Single Owner",      value: breed.singleOwner)
+                }
+
+                traitGroup("🐶 Personality") {
+                    TraitBarRow(label: "Trainability",      value: breed.trainability)
+                    TraitBarRow(label: "Barking Level",     value: breed.barkingLevel)
                     TraitBarRow(label: "Guardedness",       value: breed.guardedness)
                     TraitBarRow(label: "Aggressiveness",    value: breed.aggressiveness)
+                    TraitBarRow(label: "Loyalty",           value: breed.loyalty)
+                }
+
+                traitGroup("✂️ Care & Grooming") {
+                    TraitBarRow(label: "Shedding",          value: breed.shedding)
+                    TraitBarRow(label: "Grooming Needs",    value: breed.groomingNeeds)
+                }
+
+                traitGroup("🏥 Health & Lifespan") {
                     TraitBarRow(label: "Immunity",          value: breed.immunity)
                     TraitBarRow(label: "Lifespan",          value: breed.lifespan)
-                    TraitBarRow(label: "Grooming Needs",    value: breed.groomingNeeds)
                     TraitBarRow(label: "Vet Visits",        value: breed.vetVisitsRequired)
-                    TraitBarRow(label: "Loyalty",           value: breed.loyalty)
-                    TraitBarRow(label: "Single Owner",      value: breed.singleOwner)
                 }
             }
         }
@@ -173,6 +191,28 @@ struct BreedDetailView: View {
         Text(text)
             .font(.headline.bold())
             .foregroundStyle(Color.appTextPrimary)
+    }
+
+    @ViewBuilder
+    private func traitGroup<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline.bold())
+                .foregroundStyle(Color.appTextSecondary)
+            VStack(spacing: 8) {
+                content()
+            }
+            .padding(12)
+            .background(Color.appTagBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.appBorder, lineWidth: 1)
+            )
+        }
     }
 }
 
