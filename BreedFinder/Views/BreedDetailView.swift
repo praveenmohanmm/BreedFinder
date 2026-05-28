@@ -11,6 +11,9 @@ struct BreedDetailView: View {
                 heroSection
                 infoSection
                     .padding(20)
+                    // Pin to screen width so GeometryReader in TraitBarRow
+                    // gets the correct available width (not zero).
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .ignoresSafeArea(edges: .top)
@@ -57,14 +60,18 @@ struct BreedDetailView: View {
                 Text("\(breed.emoji)  \(breed.name)")
                     .font(.title.bold())
                     .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)  // allow wrapping on long names
                 HStack(spacing: 6) {
                     Label(breed.group, systemImage: "tag")
+                        .lineLimit(1)
                     Text("·")
                     Label(breed.origin, systemImage: "mappin")
+                        .lineLimit(1)
                 }
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.85))
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
             .padding(.bottom, 22)
         }
@@ -158,6 +165,7 @@ struct BreedDetailView: View {
     private var divider: some View {
         Rectangle()
             .fill(Color.appBorder)
+            .frame(maxWidth: .infinity)
             .frame(height: 1)
     }
 

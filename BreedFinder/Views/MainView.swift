@@ -10,6 +10,8 @@ struct MainView: View {
     ]
 
     var body: some View {
+        @Bindable var vm = vm     // enables $vm.searchText binding
+
         NavigationStack {
             ZStack(alignment: .top) {
                 Color.appBackground.ignoresSafeArea()
@@ -17,23 +19,29 @@ struct MainView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         appHeader
-                        filterToggleBar
-                        if vm.filtersExpanded {
-                            filterPanel
+
+                        // ── Always-visible search bar ──────────────────────
+                        BreedSearchBar(text: $vm.searchText)
+                            .padding(.horizontal, 18)
+                            .padding(.bottom, 6)
+
+                        // ── Search mode vs. filter mode ───────────────────
+                        if vm.isSearching {
+                            searchResultsSection
+                        } else {
+                            filterToggleBar
+                            if vm.filtersExpanded {
+                                filterPanel
+                                    .padding(.horizontal, 14)
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
+                            findBreedButton
                                 .padding(.horizontal, 14)
-                                .transition(.opacity.combined(with: .move(edge: .top)))
-                        }
-                        findBreedButton
-                            .padding(.horizontal, 14)
-                            .padding(.top, 12)
-                            .padding(.bottom, 10)
+                                .padding(.top, 12)
+                                .padding(.bottom, 10)
 
-                        if vm.isLoading {
-                            loadingIndicator
-                        }
-
-                        if vm.isResultsVisible {
-                            resultsSection
+                            if vm.isLoading { loadingIndicator }
+                            if vm.isResultsVisible { resultsSection }
                         }
 
                         Spacer(minLength: 40)
@@ -42,7 +50,8 @@ struct MainView: View {
             }
             .navigationBarHidden(true)
             .animation(.easeInOut(duration: 0.25), value: vm.filtersExpanded)
-            .animation(.easeInOut(duration: 0.2), value: vm.isResultsVisible)
+            .animation(.easeInOut(duration: 0.2),  value: vm.isResultsVisible)
+            .animation(.easeInOut(duration: 0.18), value: vm.isSearching)
         }
     }
 
@@ -63,7 +72,7 @@ struct MainView: View {
         }
         .padding(.horizontal, 18)
         .padding(.top, 16)
-        .padding(.bottom, 10)
+        .padding(.bottom, 8)
     }
 
     // ── Filter toggle bar ─────────────────────────────────────────────────────
@@ -80,7 +89,9 @@ struct MainView: View {
             } label: {
                 Label(
                     vm.filtersExpanded ? "Hide" : "Show",
-                    systemImage: vm.filtersExpanded ? "chevron.up.circle.fill" : "chevron.down.circle.fill"
+                    systemImage: vm.filtersExpanded
+                        ? "chevron.up.circle.fill"
+                        : "chevron.down.circle.fill"
                 )
                 .font(.subheadline.bold())
                 .foregroundStyle(Color.appPrimary)
@@ -98,38 +109,28 @@ struct MainView: View {
     // ── Filter panel ──────────────────────────────────────────────────────────
     @ViewBuilder
     private var filterPanel: some View {
-        @Bindable var vm = vm    // enables $vm.xxx bindings for @Observable
+        @Bindable var vm = vm
 
         VStack(spacing: 10) {
-            // ── 1. Size & Build ────────────────────────────────────────────────
             FilterSection(icon: "🐾", title: "Size & Build") {
-                TraitSliderRow(
-                    traitName: "Size",
-                    value: $vm.sizeValue,
-                    valueLabel: vm.sizeLabel
-                )
+                TraitSliderRow(traitName: "Size", value: $vm.sizeValue,
+                               valueLabel: vm.sizeLabel)
             }
-
-            // ── 2. Temperament ─────────────────────────────────────────────────
             FilterSection(icon: "🔥", title: "Temperament") {
                 VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Energy Level",  value: $vm.energyLevelValue,    valueLabel: vm.energyLevelLabel)
-                    TraitSliderRow(traitName: "Guardedness",   value: $vm.guardednessValue,     valueLabel: vm.guardednessLabel)
-                    TraitSliderRow(traitName: "Aggressiveness",value: $vm.aggressivenessValue,  valueLabel: vm.aggressivenessLabel)
-                    TraitSliderRow(traitName: "Loyalty",       value: $vm.loyaltyValue,         valueLabel: vm.loyaltyLabel)
-                    TraitSliderRow(traitName: "Single Owner",  value: $vm.singleOwnerValue,     valueLabel: vm.singleOwnerLabel)
+                    TraitSliderRow(traitName: "Energy Level",   value: $vm.energyLevelValue,    valueLabel: vm.energyLevelLabel)
+                    TraitSliderRow(traitName: "Guardedness",    value: $vm.guardednessValue,     valueLabel: vm.guardednessLabel)
+                    TraitSliderRow(traitName: "Aggressiveness", value: $vm.aggressivenessValue,  valueLabel: vm.aggressivenessLabel)
+                    TraitSliderRow(traitName: "Loyalty",        value: $vm.loyaltyValue,         valueLabel: vm.loyaltyLabel)
+                    TraitSliderRow(traitName: "Single Owner",   value: $vm.singleOwnerValue,     valueLabel: vm.singleOwnerLabel)
                 }
             }
-
-            // ── 3. Care & Grooming ─────────────────────────────────────────────
             FilterSection(icon: "✂️", title: "Care & Grooming") {
                 VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Shedding",      value: $vm.sheddingValue,        valueLabel: vm.sheddingLabel)
-                    TraitSliderRow(traitName: "Grooming Needs",value: $vm.groomingNeedsValue,   valueLabel: vm.groomingNeedsLabel)
+                    TraitSliderRow(traitName: "Shedding",       value: $vm.sheddingValue,       valueLabel: vm.sheddingLabel)
+                    TraitSliderRow(traitName: "Grooming Needs", value: $vm.groomingNeedsValue,  valueLabel: vm.groomingNeedsLabel)
                 }
             }
-
-            // ── 4. Health & Vitality ───────────────────────────────────────────
             FilterSection(icon: "🏥", title: "Health & Vitality") {
                 VStack(spacing: 0) {
                     TraitSliderRow(traitName: "Immunity",   value: $vm.immunityValue,   valueLabel: vm.immunityLabel)
@@ -137,8 +138,6 @@ struct MainView: View {
                     TraitSliderRow(traitName: "Vet Visits", value: $vm.vetVisitsValue,  valueLabel: vm.vetVisitsLabel)
                 }
             }
-
-            // Reset button
             Button {
                 withAnimation { vm.resetFilters() }
             } label: {
@@ -149,10 +148,7 @@ struct MainView: View {
                     .padding(.vertical, 10)
                     .background(Color.appTagBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.appBorder, lineWidth: 1)
-                    )
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.appBorder, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .padding(.top, 2)
@@ -170,21 +166,15 @@ struct MainView: View {
                     startPoint: .leading,
                     endPoint: .trailing
                 )
-
                 if vm.isLoading {
                     HStack(spacing: 12) {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(.white)
-                            .scaleEffect(0.85)
+                        ProgressView().progressViewStyle(.circular).tint(.white).scaleEffect(0.85)
                         Text("Sniffing out your perfect breed…")
-                            .font(.subheadline.bold())
-                            .foregroundStyle(.white)
+                            .font(.subheadline.bold()).foregroundStyle(.white)
                     }
                 } else {
                     Text("🔍  Find My Breed  🐾")
-                        .font(.headline.bold())
-                        .foregroundStyle(.white)
+                        .font(.headline.bold()).foregroundStyle(.white)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -199,50 +189,127 @@ struct MainView: View {
     // ── Loading indicator ─────────────────────────────────────────────────────
     private var loadingIndicator: some View {
         VStack(spacing: 14) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .tint(Color.appPrimary)
-                .scaleEffect(1.3)
+            ProgressView().progressViewStyle(.circular).tint(Color.appPrimary).scaleEffect(1.3)
             Text("Finding your perfect match…")
-                .font(.subheadline)
-                .foregroundStyle(Color.appTextSecondary)
+                .font(.subheadline).foregroundStyle(Color.appTextSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 50)
     }
 
-    // ── Results ───────────────────────────────────────────────────────────────
+    // ── Filter results grid ───────────────────────────────────────────────────
     private var resultsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Results header
             HStack {
                 Text(vm.resultsHeader)
-                    .font(.caption.bold())
-                    .foregroundStyle(Color.appTextSecondary)
+                    .font(.caption.bold()).foregroundStyle(Color.appTextSecondary)
                 Spacer()
                 Button {
                     withAnimation { vm.filtersExpanded = true }
                 } label: {
                     Label("Edit", systemImage: "slider.horizontal.3")
-                        .font(.caption.bold())
-                        .foregroundStyle(Color.appPrimary)
+                        .font(.caption.bold()).foregroundStyle(Color.appPrimary)
                 }
                 .buttonStyle(.plain)
             }
             .padding(.horizontal, 14)
             .padding(.top, 8)
 
-            // 2-column breed grid
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(vm.matchingBreeds) { breed in
-                    NavigationLink(destination: BreedDetailView(breed: breed)) {
-                        BreedCard(breed: breed)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 14)
+            breedGrid(vm.matchingBreeds)
         }
+    }
+
+    // ── Search results ────────────────────────────────────────────────────────
+    private var searchResultsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(vm.searchHeader)
+                .font(.caption.bold())
+                .foregroundStyle(Color.appTextSecondary)
+                .padding(.horizontal, 14)
+                .padding(.top, 8)
+
+            if vm.searchResults.isEmpty {
+                VStack(spacing: 14) {
+                    Text("🔍").font(.system(size: 52))
+                    Text("No breeds found")
+                        .font(.headline.bold())
+                        .foregroundStyle(Color.appTextPrimary)
+                    Text("Try a different name")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTextSecondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+            } else {
+                breedGrid(vm.searchResults)
+            }
+        }
+    }
+
+    // ── Shared 2-column grid ──────────────────────────────────────────────────
+    private func breedGrid(_ breeds: [DogBreed]) -> some View {
+        LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(breeds) { breed in
+                NavigationLink(destination: BreedDetailView(breed: breed)) {
+                    BreedCard(breed: breed)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 14)
+    }
+}
+
+// MARK: - Search bar component
+private struct BreedSearchBar: View {
+    @Binding var text: String
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        HStack(spacing: 9) {
+            Image(systemName: "magnifyingglass")
+                .font(.subheadline)
+                .foregroundStyle(focused || !text.isEmpty
+                                 ? Color.appPrimary
+                                 : Color.appTextSecondary)
+
+            TextField("Search breeds…", text: $text)
+                .font(.subheadline)
+                .foregroundStyle(Color.appTextPrimary)
+                .autocorrectionDisabled()
+                .focused($focused)
+
+            if !text.isEmpty {
+                Button {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        text = ""
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTextSecondary)
+                }
+                .buttonStyle(.plain)
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.9))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            focused || !text.isEmpty
+                                ? Color.appPrimary.opacity(0.5)
+                                : Color.appBorder,
+                            lineWidth: 1
+                        )
+                )
+        )
+        .animation(.easeInOut(duration: 0.15), value: focused)
+        .animation(.easeInOut(duration: 0.15), value: text.isEmpty)
     }
 }
 

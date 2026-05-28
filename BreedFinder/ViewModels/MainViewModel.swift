@@ -32,6 +32,34 @@ final class MainViewModel {
     var loyaltyLabel:         String { loyaltyText(loyaltyValue) }
     var singleOwnerLabel:     String { singleOwnerText(singleOwnerValue) }
 
+    // ── Search ────────────────────────────────────────────────────────────────
+    var searchText: String = ""
+
+    var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var searchResults: [DogBreed] {
+        guard isSearching else { return [] }
+        let q = searchText.lowercased().trimmingCharacters(in: .whitespaces)
+        return BreedDatabase.all
+            .filter { $0.name.lowercased().contains(q) }
+            .sorted {
+                // Exact prefix matches float to the top
+                let aP = $0.name.lowercased().hasPrefix(q)
+                let bP = $1.name.lowercased().hasPrefix(q)
+                if aP != bP { return aP }
+                return $0.name < $1.name
+            }
+    }
+
+    var searchHeader: String {
+        let q  = searchText.trimmingCharacters(in: .whitespaces)
+        let n  = searchResults.count
+        guard n > 0 else { return "No breeds match "\(q)"" }
+        return "\(n) breed\(n == 1 ? "" : "s") matching "\(q)""
+    }
+
     // ── Results state ─────────────────────────────────────────────────────────
     var matchingBreeds:   [DogBreed] = []
     var filtersExpanded:  Bool = true
