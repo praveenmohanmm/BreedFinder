@@ -111,68 +111,130 @@ struct MainView: View {
     private var filterPanel: some View {
         @Bindable var vm = vm
 
-        VStack(spacing: 10) {
-            // 1. Living Situation
-            FilterSection(icon: "🏠", title: "Living Situation") {
-                VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Dog Size",        value: $vm.sizeValue,        valueLabel: vm.sizeLabel)
-                    TraitSliderRow(traitName: "Energy Level",    value: $vm.energyLevelValue, valueLabel: vm.energyLevelLabel)
-                    TraitSliderRow(traitName: "Alone Tolerance", value: $vm.aloneValue,       valueLabel: vm.aloneLabel)
-                }
+        VStack(spacing: 12) {
+
+            // ── 1. Living Situation ──────────────────────────────────────────
+            filterCard("🏠", "Living Situation") {
+                TraitPickerRow(traitName: "Dog Size",     value: $vm.sizeValue,
+                               options: ["Tiny","Small","Medium","Large","Giant"])
+                pillDivider
+                TraitPickerRow(traitName: "Energy Level", value: $vm.energyLevelValue,
+                               options: ["Lazy","Low","Moderate","Active","Hyper"])
+                pillDivider
+                TraitPickerRow(traitName: "Home Alone",   value: $vm.aloneValue,
+                               options: ["Never OK","Short OK","Half Day","Full Day","Indep."])
             }
 
-            // 2. Family & Social
-            FilterSection(icon: "👨‍👩‍👧", title: "Family & Social") {
-                VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Good with Kids",  value: $vm.kidsValue,        valueLabel: vm.kidsLabel)
-                    TraitSliderRow(traitName: "Good with Pets",  value: $vm.petsValue,        valueLabel: vm.petsLabel)
-                    TraitSliderRow(traitName: "Single Owner",    value: $vm.singleOwnerValue, valueLabel: vm.singleOwnerLabel)
-                }
+            // ── 2. Family & Social ───────────────────────────────────────────
+            filterCard("👨‍👩‍👧", "Family & Social") {
+                TraitPickerRow(traitName: "Good with Kids", value: $vm.kidsValue,
+                               options: ["No Kids","Older Kids","Good","Very Good","Perfect"])
+                pillDivider
+                TraitPickerRow(traitName: "Good with Pets", value: $vm.petsValue,
+                               options: ["Solo Only","Selective","Can Adapt","Friendly","Loves All"])
+                pillDivider
+                TraitPickerRow(traitName: "Bond Style",     value: $vm.singleOwnerValue,
+                               options: ["Loves All","Family","Adapts","Prefers 1","One-Person"])
             }
 
-            // 3. Personality
-            FilterSection(icon: "🐶", title: "Personality") {
-                VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Trainability",    value: $vm.trainabilityValue,   valueLabel: vm.trainabilityLabel)
-                    TraitSliderRow(traitName: "Barking Level",   value: $vm.barkingValue,        valueLabel: vm.barkingLabel)
-                    TraitSliderRow(traitName: "Guardedness",     value: $vm.guardednessValue,    valueLabel: vm.guardednessLabel)
-                    TraitSliderRow(traitName: "Aggressiveness",  value: $vm.aggressivenessValue, valueLabel: vm.aggressivenessLabel)
-                    TraitSliderRow(traitName: "Loyalty",         value: $vm.loyaltyValue,        valueLabel: vm.loyaltyLabel)
-                }
+            // ── 3. Personality ───────────────────────────────────────────────
+            filterCard("🐶", "Personality") {
+                TraitPickerRow(traitName: "Trainability",   value: $vm.trainabilityValue,
+                               options: ["Stubborn","Tricky","Average","Smart","Genius"])
+                pillDivider
+                TraitPickerRow(traitName: "Barking",        value: $vm.barkingValue,
+                               options: ["Silent","Quiet","Moderate","Vocal","Very Vocal"])
+                pillDivider
+                TraitPickerRow(traitName: "Guardedness",    value: $vm.guardednessValue,
+                               options: ["Open","Friendly","Alert","Protective","Guard Dog"])
+                pillDivider
+                TraitPickerRow(traitName: "Aggressiveness", value: $vm.aggressivenessValue,
+                               options: ["Gentle","Calm","Assertive","Bold","Dominant"])
+                pillDivider
+                TraitPickerRow(traitName: "Loyalty",        value: $vm.loyaltyValue,
+                               options: ["Free Spirit","Semi-Indep.","Balanced","Very Loyal","Devoted"])
             }
 
-            // 4. Care & Grooming
-            FilterSection(icon: "✂️", title: "Care & Grooming") {
-                VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Shedding",        value: $vm.sheddingValue,      valueLabel: vm.sheddingLabel)
-                    TraitSliderRow(traitName: "Grooming Needs",  value: $vm.groomingNeedsValue, valueLabel: vm.groomingNeedsLabel)
-                }
+            // ── 4. Care & Grooming ───────────────────────────────────────────
+            filterCard("✂️", "Care & Grooming") {
+                TraitPickerRow(traitName: "Shedding",       value: $vm.sheddingValue,
+                               options: ["None","Low","Moderate","High","Heavy"])
+                pillDivider
+                TraitPickerRow(traitName: "Grooming Needs", value: $vm.groomingNeedsValue,
+                               options: ["Minimal","Occasional","Regular","Frequent","Salon"])
             }
 
-            // 5. Health & Lifespan
-            FilterSection(icon: "🏥", title: "Health & Lifespan") {
-                VStack(spacing: 0) {
-                    TraitSliderRow(traitName: "Immunity",        value: $vm.immunityValue,  valueLabel: vm.immunityLabel)
-                    TraitSliderRow(traitName: "Lifespan",        value: $vm.lifespanValue,  valueLabel: vm.lifespanLabel)
-                    TraitSliderRow(traitName: "Vet Visits",      value: $vm.vetVisitsValue, valueLabel: vm.vetVisitsLabel)
-                }
+            // ── 5. Health & Lifespan ─────────────────────────────────────────
+            filterCard("🏥", "Health & Lifespan") {
+                TraitPickerRow(traitName: "Immunity",   value: $vm.immunityValue,
+                               options: ["Fragile","Below Avg","Average","Robust","Exceptional"])
+                pillDivider
+                TraitPickerRow(traitName: "Lifespan",   value: $vm.lifespanValue,
+                               options: ["Short","Below Avg","Average","Long","Very Long"])
+                pillDivider
+                TraitPickerRow(traitName: "Vet Visits", value: $vm.vetVisitsValue,
+                               options: ["Rarely","Occasional","Routine","Frequent","Very Often"])
             }
 
+            // ── Reset ────────────────────────────────────────────────────────
             Button {
                 withAnimation { vm.resetFilters() }
             } label: {
-                Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                Label("Reset All Filters", systemImage: "arrow.counterclockwise")
                     .font(.subheadline.bold())
                     .foregroundStyle(Color.appPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 12)
                     .background(Color.appTagBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.appBorder, lineWidth: 1))
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.appBorder, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .padding(.top, 2)
         }
+    }
+
+    /// White card wrapper for a filter section — title header + pill rows inside.
+    @ViewBuilder
+    private func filterCard<Content: View>(
+        _ icon: String,
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Section header bar
+            HStack(spacing: 7) {
+                Text(icon).font(.body)
+                Text(title)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color.appTextPrimary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+            .background(Color(hex: "#F7F8FA"))
+
+            Rectangle()
+                .fill(Color.appBorder)
+                .frame(height: 1)
+
+            VStack(spacing: 0) {
+                content()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 4)
+        }
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+    }
+
+    /// Thin hairline separator between pill rows inside a card.
+    private var pillDivider: some View {
+        Rectangle()
+            .fill(Color.appBorder)
+            .frame(height: 1)
+            .padding(.vertical, 2)
     }
 
     // ── CTA button ────────────────────────────────────────────────────────────
