@@ -74,8 +74,8 @@ final class MainViewModel {
     var searchHeader: String {
         let q  = searchText.trimmingCharacters(in: .whitespaces)
         let n  = searchResults.count
-        guard n > 0 else { return "No breeds match "\(q)"" }
-        return "\(n) breed\(n == 1 ? "" : "s") matching "\(q)""
+        guard n > 0 else { return "No breeds match \u{201C}\(q)\u{201D}" }
+        return "\(n) breed\(n == 1 ? "" : "s") matching \u{201C}\(q)\u{201D}"
     }
 
     // ── Results state ─────────────────────────────────────────────────────────
